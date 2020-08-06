@@ -78,7 +78,7 @@ fn make_key_regex(keywords: &Vec<String>) {
 
     let _ = ss.drain(ss.len() - 1..).collect::<String>();
     let mut kk = KEYWORDS_REGEX.lock().unwrap();
-    *kk = Some(Regex::new(&format!("(?P<keyws>{}):.*", ss)).unwrap());
+    *kk = Some(Regex::new(&format!("({}):.*", ss)).unwrap());
 }
 
 impl From<&Args> for Config {

@@ -1,5 +1,5 @@
 use clap::Clap;
-use code_it_later::{config, fs_operation};
+use code_it_later_rs::{config, fs_operation};
 
 fn main() {
     let args = config::Args::parse();

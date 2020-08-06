@@ -2,3 +2,4 @@ Cargo.lock
 GPATH
 GRTAGS
 GTAGS
+target/

@@ -210,7 +210,7 @@ pub fn handle_files(conf: &Config) {
         .collect();
 
     // split to groups
-    let threads_num = 12;
+    let threads_num = 24;
     let len = all_files.len();
     let count = len / threads_num;
     let mut groups: Vec<Vec<File>> = vec![];
