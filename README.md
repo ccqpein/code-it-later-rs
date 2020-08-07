@@ -21,6 +21,18 @@ Make flags in source code where may have problems or can be optimized. codeitlat
 * get comments in special path
 * can expand to other languages
 
+Languages support now:
+
++ rs
++ go
++ lisp
++ py
++ hs
++ el
++ clj
+
+If you wanna expand other languages, check [expand json file](#expand-json-file)
+
 ## Usage ##
 
 Write code as usual. The comment line that you want to leave mark in, left `:=` symbol after comment symbol.

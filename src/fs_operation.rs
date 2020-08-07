@@ -76,10 +76,7 @@ fn files_and_dirs_in_path(p: impl AsRef<Path>, conf: &Config) -> Result<(Files, 
                         let aa = REGEX_TABLE.lock();
                         if let Some(re) = aa.as_ref().unwrap().get(t.to_str().unwrap()) {
                             // and has regex for this type
-                            let re = unsafe {
-                                let p = re as *const Regex;
-                                p.clone().as_ref().unwrap()
-                            };
+                            let re = unsafe { (re as *const Regex).clone().as_ref().unwrap() };
                             f.push(File(path, re))
                         }
                     }
@@ -90,10 +87,7 @@ fn files_and_dirs_in_path(p: impl AsRef<Path>, conf: &Config) -> Result<(Files, 
                     let aa = REGEX_TABLE.lock();
                     if let Some(re) = aa.as_ref().unwrap().get(t.to_str().unwrap()) {
                         // and has regex for this type
-                        let re = unsafe {
-                            let p = re as *const Regex;
-                            p.clone().as_ref().unwrap()
-                        };
+                        let re = unsafe { (re as *const Regex).clone().as_ref().unwrap() };
                         f.push(File(path, re))
                     }
                 }
@@ -125,12 +119,6 @@ impl fmt::Display for Bread {
             write!(f, "  |-- {}\n", c)?;
         }
         Ok(())
-    }
-}
-
-impl AsRef<Vec<Crumb>> for Bread {
-    fn as_ref(&self) -> &Vec<Crumb> {
-        &self.crumbs
     }
 }
 
