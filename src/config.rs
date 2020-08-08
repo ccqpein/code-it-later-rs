@@ -106,22 +106,28 @@ impl From<&Args> for Config {
     }
 }
 
-/// Args struct from command line
+//:= DOC: this doc in -h, remember update with version
+/// Command Line Args
 #[derive(Default, Clap, Debug)]
-#[clap(version = "0.1.0", author = "ccQpein")]
+#[clap(version = "0.1.2")]
 pub struct Args {
+    /// What are the filetypes you want to scan.
     #[clap(short, long)]
     filetypes: Vec<OsString>,
 
+    /// Specifically dirs code-it-later runs in
     #[clap(short, long, default_value = ".")]
     dirs: Vec<String>,
 
+    /// The folder name should ignored
     #[clap(short = "x", long = "ignore-dir")]
     ignore_dirs: Vec<OsString>,
 
+    /// Keywords
     #[clap(short, long)]
     keywords: Option<Vec<String>>,
 
+    /// Expand dictionary json file path
     #[clap(short, long)]
     jsonx: Option<String>,
 }
