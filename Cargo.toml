@@ -1,6 +1,6 @@
 [package]
 name = "code-it-later-rs"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["ccQpein"]
 edition = "2018"
 description = "Filter crumbs you left in comments of code to remind where you were"

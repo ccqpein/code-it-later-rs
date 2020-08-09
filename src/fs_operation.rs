@@ -5,6 +5,7 @@ use std::fs::read_dir;
 use std::io::prelude::*;
 use std::{io::Result, path::Path, path::PathBuf, thread};
 
+/// Find all files in this dir recursivly
 fn all_files_in_dir<T>(p: T, conf: &Config) -> Result<Files>
 where
     T: AsRef<Path>,
@@ -26,12 +27,16 @@ where
     Ok(result)
 }
 
+/// Vector of all pathbufs
 type Dirs = Vec<PathBuf>;
 
+/// File struct, including file path and the &Regex of this file
+/// &Regex CANNOT be nil
 #[derive(Debug)]
 struct File(PathBuf, &'static Regex);
 
 impl File {
+    /// Return string of file path
     fn to_string(&self) -> String {
         self.0.as_os_str().to_os_string().into_string().unwrap()
     }
@@ -39,6 +44,7 @@ impl File {
 
 type Files = Vec<File>;
 
+/// Find files and dirs in this folder
 fn files_and_dirs_in_path(p: impl AsRef<Path>, conf: &Config) -> Result<(Files, Dirs)> {
     let (mut f, mut d): (Files, Dirs) = (vec![], vec![]);
 
@@ -76,7 +82,12 @@ fn files_and_dirs_in_path(p: impl AsRef<Path>, conf: &Config) -> Result<(Files, 
                         let aa = REGEX_TABLE.lock();
                         if let Some(re) = aa.as_ref().unwrap().get(t.to_str().unwrap()) {
                             // and has regex for this type
-                            let re = unsafe { (re as *const Regex).clone().as_ref().unwrap() };
+                            let re = unsafe {
+                                match (re as *const Regex).clone().as_ref() {
+                                    Some(a) => a,
+                                    None => continue,
+                                }
+                            };
                             f.push(File(path, re))
                         }
                     }
@@ -87,7 +98,12 @@ fn files_and_dirs_in_path(p: impl AsRef<Path>, conf: &Config) -> Result<(Files, 
                     let aa = REGEX_TABLE.lock();
                     if let Some(re) = aa.as_ref().unwrap().get(t.to_str().unwrap()) {
                         // and has regex for this type
-                        let re = unsafe { (re as *const Regex).clone().as_ref().unwrap() };
+                        let re = unsafe {
+                            match (re as *const Regex).clone().as_ref() {
+                                Some(a) => a,
+                                None => continue,
+                            }
+                        };
                         f.push(File(path, re))
                     }
                 }
@@ -114,7 +130,8 @@ impl Bread {
 
 impl fmt::Display for Bread {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "|-- {}\n", self.file_path)?;
+        write!(f, "|-- {}\n", self.file_path)?; // write file_path
+
         for c in &self.crumbs {
             write!(f, "  |-- {}\n", c)?;
         }
@@ -122,35 +139,65 @@ impl fmt::Display for Bread {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone)]
 struct Crumb {
     line_num: usize,
+    keyword: Option<String>,
     content: String,
 }
 
 impl Crumb {
-    fn has_keywords(&self, re: &Regex) -> bool {
-        re.is_match(&self.content)
+    /// side effect: will change keyword to Some(_) if match successed
+    fn filter_keywords(&mut self, re: &Regex) -> bool {
+        match re.captures(&self.content) {
+            Some(a) => {
+                self.keyword = Some(a[1].to_string());
+                self.content = a[2].to_string();
+                true
+            }
+            None => false,
+        }
+    }
+
+    fn has_tail(&self) -> bool {
+        self.content.ends_with("...")
+    }
+
+    fn add_tail(&mut self, tail: &Self) {
+        self.content = self.content.trim_end().trim_end_matches("...").to_string();
+        self.content.push(' ');
+        self.content.push_str(&tail.content);
     }
 }
 
 impl fmt::Display for Crumb {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Line {}: {}", self.line_num, self.content)?;
+        let a = match self.keyword {
+            Some(ref k) => {
+                let mut c = String::from(k);
+                c.push_str(": ");
+                c
+            }
+            None => "".to_string(),
+        };
+        write!(f, "Line {}: {}{}", self.line_num, a, self.content)?;
         Ok(())
     }
 }
 
+/// Filter this line
 fn filter_line(line: &str, line_num: usize, re: &Regex) -> Option<Crumb> {
     match re.captures(line) {
         Some(content) => Some(Crumb {
             line_num,
+            keyword: None,
             content: content[2].to_string(),
         }),
         None => None,
     }
 }
 
+/// Operate this file
 fn op_file(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
     // start to read file
     let mut buf = vec![];
@@ -159,24 +206,64 @@ fn op_file(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
     f.read_to_end(&mut buf)?;
 
     let mut line_num = 0;
-    let mut ss = String::new();
+    let mut ss = String::new(); // temp
     let mut buf = buf.as_slice();
     let mut result = vec![];
+    let mut head: Option<Crumb> = None; // for tail support
+
+    // closure for keywords feature
+    let mut keyword_checker_and_push = |mut cb: Crumb| {
+        if kwreg.is_some() {
+            if cb.filter_keywords(kwreg.as_ref().unwrap()) {
+                result.push(cb)
+            }
+        } else {
+            result.push(cb)
+        }
+    };
+
     loop {
         line_num += 1;
         match buf.read_line(&mut ss) {
-            Ok(0) | Err(_) => break, // if EOF or any error in this file, break
+            Ok(0) | Err(_) => {
+                if head.is_some() {
+                    keyword_checker_and_push(head.unwrap());
+                }
+                break; // if EOF or any error in this file, break
+            }
             Ok(_) => match filter_line(&ss, line_num, file.1) {
                 Some(cb) => {
-                    if kwreg.is_some() {
-                        if cb.has_keywords(kwreg.as_ref().unwrap()) {
-                            result.push(cb)
+                    // check head first
+                    match head {
+                        Some(ref mut h) => {
+                            if h.has_tail() {
+                                // if head has tail, add this line to head, continue
+                                h.add_tail(&cb);
+                                ss.clear(); // before continue, clear temp
+                                continue;
+                            } else {
+                                // store head
+                                keyword_checker_and_push(head.unwrap());
+                                head = None;
+                            }
                         }
+                        None => (),
+                    }
+
+                    if cb.has_tail() {
+                        // make new head
+                        head = Some(cb);
                     } else {
-                        result.push(cb)
+                        // store result
+                        keyword_checker_and_push(cb)
                     }
                 }
-                None => (),
+                None => {
+                    if head.is_some() {
+                        keyword_checker_and_push(head.unwrap());
+                        head = None;
+                    }
+                }
             },
         }
         ss.clear()
@@ -227,6 +314,7 @@ pub fn handle_files(conf: &Config) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::make_key_regex;
 
     #[test]
     fn test_files_and_dirs_in_path() -> Result<()> {
@@ -235,5 +323,28 @@ mod tests {
         assert_eq!(dirs.len(), 0);
         assert_eq!(fs[0].0, PathBuf::from("./tests/test.rs"),);
         Ok(())
+    }
+
+    #[test]
+    fn test_filter_keyowrds() {
+        let mut a: Crumb = Default::default();
+        a.content = "TODO: test1".to_string();
+
+        assert!(a.filter_keywords(&Regex::new(&format!("({}):\\s*(.*)", "TODO")).unwrap()));
+        assert_eq!(a.keyword, Some("TODO".to_string()));
+
+        a.content = "TODO: test1".to_string();
+        assert!(
+            a.filter_keywords(&Regex::new(&format!("({}|{}):\\s*(.*)", "TODO", "MARK")).unwrap())
+        );
+        assert_eq!(a.keyword, Some("TODO".to_string()));
+        assert_eq!(a.content, "test1");
+
+        // test 2
+        let mut a: Crumb = Default::default();
+        a.content = "test1".to_string();
+
+        assert!(!a.filter_keywords(&Regex::new(&format!("({}):\\s*(.*)", "TODO")).unwrap()));
+        assert_eq!(a.keyword, None);
     }
 }

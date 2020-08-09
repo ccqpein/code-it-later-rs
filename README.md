@@ -57,9 +57,9 @@ You will get:
 
 ```
 |-- /user/src/main.go
-  |-- (3 "this line can be read by codeitlater")
-  |-- (4 "MARK: you can left keyword to marked comment line")
-  |-- (5 "mutil lines comments")
+  |-- Line 3: this line can be read by codeitlater
+  |-- Line 4: MARK: you can left keyword to marked comment line
+  |-- Line 5: mutil lines comments
 ```
 
 **Python**:
@@ -77,8 +77,8 @@ You will get:
 
 ```
 |-- /src/main.py
-  |-- (3 "this line for codeitlater")
-  |-- (4 "this line can be read again")
+  |-- Line 3: this line for codeitlater"
+  |-- Line 4: this line can be read again"
 ```
 
 
@@ -101,23 +101,63 @@ Then results both of clojure and python will return.
 
 Run `codeitlater -d /user/src/` let codeitlater just scan specific path.
 
+#### Mulit-line ####
+
+When one line ending with `...`, then, the **next** line will add to this crumb. Also, you can make tail chain for this.
+
+For example:
+
+```rust
+//:= line1...
+//:= , and line2...
+//:= line3 with line2...
+
+//:= line4 is diffrent...
+//:= with line5
+//:= line6
+```
+
+Will give you:
+
+```
+  |-- Line 1: line1 , and line2 line3 with line2...
+  |-- Line 4: line4 is diffrent with line5
+  |-- Line 6: line6
+```
 #### Filter keyword ####
 
 Keyword format is `Keyword:` with a space after.
 
 Filter keyword (use -k be keyword flag, check out more flags by -h):
+
 `codeitlater -k MARK`
 
 You will get:
 
 ```
 |-- /user/src/main.go
-  |-- (4 "MARK: you can left keyword to marked comment line")
+  |-- Line 4: MARK: you can left keyword to marked comment line
 ```
 
 Same format as filetypes, if you want get two keywords together:
 
 `codeitlater -k TODO --keywords MARK`
+
+**CAUTION:** if keywords and multi-lines are mixed, multi-lines feature has higher priority. 
+
+Example:
+
+```
+//:= TODO: aaaa...
+//:= bbb...
+//:= MARK: ccc
+```
+
+Both `codeitlater` and `codeitlater -k TODO` are showing 
+
+> |-- Line 1: TODO: aaaa bbb MARK: ccc
+
+`codeitlater -k MARK` will show nothing.
 
 #### Excluding some folder ####
 

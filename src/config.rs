@@ -70,7 +70,7 @@ pub struct Config {
     pub(super) dirs: Vec<String>,
 }
 
-fn make_key_regex(keywords: &Vec<String>) {
+pub(super) fn make_key_regex(keywords: &Vec<String>) {
     let mut ss = String::new();
     for s in keywords {
         ss.push_str(&s);
@@ -79,7 +79,7 @@ fn make_key_regex(keywords: &Vec<String>) {
 
     let _ = ss.drain(ss.len() - 1..).collect::<String>();
     let mut kk = KEYWORDS_REGEX.lock().unwrap();
-    *kk = Some(Regex::new(&format!("({}):.*", ss)).unwrap());
+    *kk = Some(Regex::new(&format!("({}):\\s*(.*)", ss)).unwrap());
 }
 
 impl From<&Args> for Config {
@@ -109,7 +109,7 @@ impl From<&Args> for Config {
 //:= DOC: this doc in -h, remember update with version
 /// Command Line Args
 #[derive(Default, Clap, Debug)]
-#[clap(version = "0.1.2")]
+#[clap(version = "0.1.3")]
 pub struct Args {
     /// What are the filetypes you want to scan.
     #[clap(short, long)]
