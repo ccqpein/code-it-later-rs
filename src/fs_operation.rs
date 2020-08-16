@@ -314,7 +314,6 @@ pub fn handle_files(conf: &Config) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::make_key_regex;
 
     #[test]
     fn test_files_and_dirs_in_path() -> Result<()> {
