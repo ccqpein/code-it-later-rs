@@ -46,7 +46,7 @@ For example:
 // test codeitlater
 //:= this line can be read by codeitlater
 //:= MARK: you can left keyword to marked comment line
-/* mutil lines comments
+/*:= mutil lines comments
 */
 
 ```
