@@ -120,7 +120,7 @@ pub struct Args {
     dirs: Vec<String>,
 
     /// The folder name should ignored
-    #[clap(short = "x", long = "ignore-dir")]
+    #[clap(short = 'x', long = "ignore-dir")]
     ignore_dirs: Vec<OsString>,
 
     /// Keywords
