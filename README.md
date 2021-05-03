@@ -166,3 +166,7 @@ Both `codeitlater` and `codeitlater -k TODO` are showing
 #### Expand json file ####
 
 Check `tests/test.json`, if you run `codeitlater -j ./tests/test.json`, the "rs" in codeitlater's dictionary will be covered by new value in `test.json`. Other languages are keep same.
+
+#### Local arguments ####
+
+`codeitlater` will look for  `{$PWD}/.codeitlater` file to pre-load arguments. If any arguments those been given in command line, also set inside the `.codeitlater` file, will be rewrote by command line arguments. 

@@ -1,10 +1,11 @@
 use clap::Clap;
 use lazy_static::*;
 use regex::Regex;
-use std::fs::File;
+use std::io::BufRead;
 use std::io::Read;
 use std::sync::Mutex;
 use std::{collections::HashMap, ffi::OsString};
+use std::{fs::File, io::BufReader};
 
 /// Inner dictionary
 const DICT: &'static str = r#"
@@ -106,10 +107,44 @@ impl From<&Args> for Config {
     }
 }
 
+fn read_config_raw_content<R: BufRead>(content: R) -> Vec<String> {
+    let buf_reader = BufReader::new(content);
+    let mut a = vec!["codeitlater".to_string()];
+    a.append(
+        &mut buf_reader
+            .lines()
+            .filter_map(|l| {
+                let ll = l.unwrap();
+                if ll.is_empty() {
+                    None
+                } else {
+                    Some(
+                        ll.split_whitespace()
+                            .map(|s| s.to_string())
+                            .collect::<Vec<String>>(),
+                    )
+                }
+            })
+            .flatten()
+            .collect::<Vec<String>>(),
+    );
+    a
+}
+
+pub fn parse_from_current_path_config() -> Option<Args> {
+    match File::open(".codeitlater") {
+        Ok(f) => Some(Args::parse_from(read_config_raw_content(BufReader::new(f)))),
+        Err(_e) => {
+            //println!("{}", _e.to_string());
+            None
+        }
+    }
+}
+
 //:= DOC: this doc in -h, remember update with version
 /// Command Line Args
 #[derive(Default, Clap, Debug)]
-#[clap(version = "0.1.3")]
+#[clap(version = "0.1.5")]
 pub struct Args {
     /// What are the filetypes you want to scan.
     #[clap(short, long)]
@@ -130,6 +165,32 @@ pub struct Args {
     /// Expand dictionary json file path
     #[clap(short, long)]
     jsonx: Option<String>,
+}
+
+impl Args {
+    /// union this args with other, self values totally rewrotten by other
+    /// if both of args have same fields
+    pub fn union(&mut self, other: Self) {
+        if other.filetypes.len() != 0 {
+            self.filetypes = other.filetypes
+        }
+
+        if other.dirs.len() != 0 {
+            self.dirs = other.dirs
+        }
+
+        if other.ignore_dirs.len() != 0 {
+            self.ignore_dirs = other.ignore_dirs
+        }
+
+        if other.keywords.is_some() {
+            self.keywords = other.keywords
+        }
+
+        if other.jsonx.is_some() {
+            self.jsonx = other.jsonx
+        }
+    }
 }
 
 #[cfg(test)]
@@ -236,5 +297,25 @@ mod tests {
         ]))
         .unwrap();
         assert!(re.captures("err := test").is_none());
+    }
+
+    #[test]
+    fn test_parse_from_iter() {
+        let args = vec!["codeitlater", "-x", "dd"];
+        assert_eq!(Args::parse_from(args).ignore_dirs, vec!["dd"]);
+    }
+
+    #[test]
+    fn test_read_current_path_config() {
+        let content = "
+-x target
+
+-k    TODO"
+            .as_bytes();
+        //dbg!(read_config_raw_content(content));
+        assert_eq!(
+            vec!["codeitlater", "-x", "target", "-k", "TODO"],
+            read_config_raw_content(content)
+        );
     }
 }
