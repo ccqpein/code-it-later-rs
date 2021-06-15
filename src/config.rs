@@ -16,7 +16,8 @@ const DICT: &'static str = r#"
 "py":["\\#"],
 "hs":["-- "],
 "el":[";"],
-"clj":[";"]
+"clj":[";"],
+"js":["//"]
 }
 "#;
 
@@ -144,7 +145,7 @@ pub fn parse_from_current_path_config() -> Option<Args> {
 //:= DOC: this doc in -h, remember update with version
 /// Command Line Args
 #[derive(Default, Clap, Debug)]
-#[clap(version = "0.1.5")]
+#[clap(version = "0.1.6")]
 pub struct Args {
     /// What are the filetypes you want to scan.
     #[clap(short, long)]

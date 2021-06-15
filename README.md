@@ -30,6 +30,7 @@ Languages support now:
 + hs
 + el
 + clj
++ js
 
 If you wanna expand other languages, check [expand json file](#expand-json-file)
 
