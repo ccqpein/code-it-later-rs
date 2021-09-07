@@ -1,9 +1,46 @@
 use super::config::{Config, KEYWORDS_REGEX, REGEX_TABLE};
 use regex::Regex;
+use std::ffi::OsString;
 use std::fmt;
 use std::fs::read_dir;
 use std::io::prelude::*;
 use std::{io::Result, path::Path, path::PathBuf, thread};
+
+/// Vector of all pathbufs
+type Dirs = Vec<PathBuf>;
+
+/// File struct, including file path and the &Regex of this file
+/// &Regex CANNOT be nil
+//#[derive(Debug)]
+struct File(PathBuf, &'static Regex);
+
+impl File {
+    /// Return string of file path
+    fn to_string(&self) -> String {
+        self.0.as_os_str().to_os_string().into_string().unwrap()
+    }
+}
+
+type Files = Vec<File>;
+
+/// loop all string inside paths_or_files, if it is file, store it, if it is dir
+/// store all files inside thsi dir (recursivly)
+fn files_in_dir_or_file_vec(paths_or_files: &[impl AsRef<Path>], conf: &Config) -> Result<Files> {
+    let mut result: Files = vec![];
+    for ele in paths_or_files {
+        if ele.as_ref().is_dir() {
+            result.append(&mut all_files_in_dir(ele, conf)?)
+        } else {
+            file_checker(
+                &mut result,
+                ele.as_ref(),
+                &conf.filetypes,
+                conf.filetypes.len(),
+            )
+        }
+    }
+    Ok(result)
+}
 
 /// Find all files in this dir recursivly
 fn all_files_in_dir<T>(p: T, conf: &Config) -> Result<Files>
@@ -26,23 +63,6 @@ where
 
     Ok(result)
 }
-
-/// Vector of all pathbufs
-type Dirs = Vec<PathBuf>;
-
-/// File struct, including file path and the &Regex of this file
-/// &Regex CANNOT be nil
-#[derive(Debug)]
-struct File(PathBuf, &'static Regex);
-
-impl File {
-    /// Return string of file path
-    fn to_string(&self) -> String {
-        self.0.as_os_str().to_os_string().into_string().unwrap()
-    }
-}
-
-type Files = Vec<File>;
 
 /// Find files and dirs in this folder
 fn files_and_dirs_in_path(p: impl AsRef<Path>, conf: &Config) -> Result<(Files, Dirs)> {
@@ -72,49 +92,54 @@ fn files_and_dirs_in_path(p: impl AsRef<Path>, conf: &Config) -> Result<(Files, 
                 d.push(path)
             }
         } else {
-            // check filetypes
-            if filetypes_count != 0 {
-                // special filetypes
-                if let Some(t) = path.extension() {
-                    // file has extension
-                    if filetypes.contains(&t.to_os_string()) {
-                        // this file include in filetypes
-                        let aa = REGEX_TABLE.lock();
-                        if let Some(re) = aa.as_ref().unwrap().get(t.to_str().unwrap()) {
-                            // and has regex for this type
-                            let re = unsafe {
-                                match (re as *const Regex).clone().as_ref() {
-                                    Some(a) => a,
-                                    None => continue,
-                                }
-                            };
-                            f.push(File(path, re))
-                        }
-                    }
-                }
-            } else {
-                if let Some(t) = path.extension() {
-                    // file has extension
-                    let aa = REGEX_TABLE.lock();
-                    if let Some(re) = aa.as_ref().unwrap().get(t.to_str().unwrap()) {
-                        // and has regex for this type
-                        let re = unsafe {
-                            match (re as *const Regex).clone().as_ref() {
-                                Some(a) => a,
-                                None => continue,
-                            }
-                        };
-                        f.push(File(path, re))
-                    }
-                }
-            }
+            file_checker(&mut f, &path, &filetypes, filetypes_count)
         }
     }
     Ok((f, d))
 }
 
+/// if file path pass check, add it to files
+fn file_checker(files: &mut Files, path: &Path, filetypes: &[OsString], filetypes_count: usize) {
+    // check filetypes
+    if filetypes_count != 0 {
+        // special filetypes
+        if let Some(t) = path.extension() {
+            // file has extension
+            if filetypes.contains(&t.to_os_string()) {
+                // this file include in filetypes
+                let aa = REGEX_TABLE.lock();
+                if let Some(re) = aa.as_ref().unwrap().get(t.to_str().unwrap()) {
+                    // and has regex for this type
+                    let re = unsafe {
+                        match (re as *const Regex).clone().as_ref() {
+                            Some(a) => a,
+                            None => return,
+                        }
+                    };
+                    files.push(File(path.to_path_buf(), re))
+                }
+            }
+        }
+    } else {
+        if let Some(t) = path.extension() {
+            // file has extension
+            let aa = REGEX_TABLE.lock();
+            if let Some(re) = aa.as_ref().unwrap().get(t.to_str().unwrap()) {
+                // and has regex for this type
+                let re = unsafe {
+                    match (re as *const Regex).clone().as_ref() {
+                        Some(a) => a,
+                        None => return,
+                    }
+                };
+                files.push(File(path.to_path_buf(), re))
+            }
+        }
+    }
+}
+
 #[derive(Debug)]
-struct Bread {
+pub struct Bread {
     file_path: String,
     crumbs: Vec<Crumb>,
 }
@@ -276,13 +301,19 @@ fn op_file(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
     }
 }
 
-pub fn handle_files(conf: &Config) {
-    let mut all_files: Vec<File> = conf
-        .dirs
-        .iter()
-        .map(|d| all_files_in_dir(d, conf).unwrap())
-        .flatten()
-        .collect();
+pub fn handle_files(conf: &Config) -> impl Iterator<Item = Bread> {
+    // first add all files in arguments
+    let mut all_files: Vec<File> = files_in_dir_or_file_vec(&conf.files, conf).unwrap();
+
+    // then handle -dir option
+    all_files.append(
+        &mut conf
+            .dirs
+            .iter()
+            .map(|d| all_files_in_dir(d, conf).unwrap())
+            .flatten()
+            .collect(),
+    );
 
     // split to groups
     let threads_num = 24;
@@ -308,7 +339,6 @@ pub fn handle_files(conf: &Config) {
         })
         .map(|han| han.join().unwrap())
         .flatten()
-        .for_each(|b| println!("{}", b));
 }
 
 #[cfg(test)]
@@ -317,10 +347,10 @@ mod tests {
 
     #[test]
     fn test_files_and_dirs_in_path() -> Result<()> {
-        let (fs, dirs) = files_and_dirs_in_path("./tests", &Default::default())?;
+        let (fs, dirs) = files_and_dirs_in_path("./tests/testcases", &Default::default())?;
 
         assert_eq!(dirs.len(), 0);
-        assert_eq!(fs[0].0, PathBuf::from("./tests/test.rs"),);
+        assert_eq!(fs[0].0, PathBuf::from("./tests/testcases/test.rs"),);
         Ok(())
     }
 

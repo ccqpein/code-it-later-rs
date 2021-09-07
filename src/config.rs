@@ -65,13 +65,6 @@ fn make_regex(com_syms: &Vec<String>) -> String {
     format!("({}):=\\s+(.*)", head)
 }
 
-#[derive(Default, Debug, Clone)]
-pub struct Config {
-    pub(super) filetypes: Vec<OsString>,
-    pub(super) ignore_dirs: Vec<OsString>,
-    pub(super) dirs: Vec<String>,
-}
-
 pub(super) fn make_key_regex(keywords: &Vec<String>) {
     let mut ss = String::new();
     for s in keywords {
@@ -82,6 +75,14 @@ pub(super) fn make_key_regex(keywords: &Vec<String>) {
     let _ = ss.drain(ss.len() - 1..).collect::<String>();
     let mut kk = KEYWORDS_REGEX.lock().unwrap();
     *kk = Some(Regex::new(&format!("({}):\\s*(.*)", ss)).unwrap());
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct Config {
+    pub(super) filetypes: Vec<OsString>,
+    pub(super) ignore_dirs: Vec<OsString>,
+    pub(super) dirs: Vec<String>,
+    pub(super) files: Vec<String>,
 }
 
 impl From<&Args> for Config {
@@ -104,6 +105,7 @@ impl From<&Args> for Config {
             filetypes: a.filetypes.clone(),
             ignore_dirs: a.ignore_dirs.clone(),
             dirs: a.dirs.clone(),
+            files: a.targets.clone(),
         }
     }
 }
@@ -145,7 +147,7 @@ pub fn parse_from_current_path_config() -> Option<Args> {
 //:= DOC: this doc in -h, remember update with version
 /// Command Line Args
 #[derive(Default, Clap, Debug)]
-#[clap(version = "0.1.6")]
+#[clap(version = "0.1.7", author = "ccQpein")]
 pub struct Args {
     /// What are the filetypes you want to scan.
     #[clap(short, long)]
@@ -166,6 +168,11 @@ pub struct Args {
     /// Expand dictionary json file path
     #[clap(short, long)]
     jsonx: Option<String>,
+
+    /// files/dirs input directly
+    ///:= DOC: won't be rewrite by union
+    #[clap(name = "files/dirs")]
+    targets: Vec<String>,
 }
 
 impl Args {
@@ -246,7 +253,7 @@ mod tests {
     #[test]
     fn test_update_table_with_json() {
         let mut buf = vec![];
-        File::open("./tests/test.json")
+        File::open("./tests/testcases/test.json")
             .unwrap()
             .read_to_end(&mut buf)
             .unwrap();
@@ -304,6 +311,25 @@ mod tests {
     fn test_parse_from_iter() {
         let args = vec!["codeitlater", "-x", "dd"];
         assert_eq!(Args::parse_from(args).ignore_dirs, vec!["dd"]);
+
+        // if there are some options, "--" is required
+        let args = vec!["codeitlater", "-x", "dd", "--", "a", "b", "c"];
+        assert_eq!(
+            Args::parse_from(args).targets,
+            vec!["a".to_string(), "b".to_string(), "c".to_string()]
+        );
+
+        let args = vec!["codeitlater", "-d", "src", "--", "a", "b", "c"];
+        assert_eq!(
+            Args::parse_from(args).targets,
+            vec!["a".to_string(), "b".to_string(), "c".to_string()]
+        );
+
+        let args = vec!["codeitlater", "a", "b", "c"];
+        assert_eq!(
+            Args::parse_from(args).targets,
+            vec!["a".to_string(), "b".to_string(), "c".to_string()]
+        );
     }
 
     #[test]

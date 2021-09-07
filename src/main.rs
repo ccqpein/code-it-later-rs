@@ -16,5 +16,6 @@ fn main() {
     };
 
     let conf = config::Config::from(&args);
-    fs_operation::handle_files(&conf);
+    dbg!(&args, &conf);
+    fs_operation::handle_files(&conf).for_each(|b| println!("{}", b));
 }
