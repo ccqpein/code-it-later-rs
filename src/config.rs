@@ -81,7 +81,6 @@ pub(super) fn make_key_regex(keywords: &Vec<String>) {
 pub struct Config {
     pub(super) filetypes: Vec<OsString>,
     pub(super) ignore_dirs: Vec<OsString>,
-    pub(super) dirs: Vec<String>,
     pub(super) files: Vec<String>,
 }
 
@@ -104,7 +103,6 @@ impl From<&Args> for Config {
         Self {
             filetypes: a.filetypes.clone(),
             ignore_dirs: a.ignore_dirs.clone(),
-            dirs: a.dirs.clone(),
             files: a.targets.clone(),
         }
     }
@@ -153,10 +151,6 @@ pub struct Args {
     #[clap(short, long)]
     filetypes: Vec<OsString>,
 
-    /// Specifically dirs code-it-later runs in
-    #[clap(short, long, default_value = ".")]
-    dirs: Vec<String>,
-
     /// The folder name should ignored
     #[clap(short = 'x', long = "ignore-dir")]
     ignore_dirs: Vec<OsString>,
@@ -170,8 +164,7 @@ pub struct Args {
     jsonx: Option<String>,
 
     /// files/dirs input directly
-    ///:= DOC: won't be rewrite by union
-    #[clap(name = "files/dirs")]
+    #[clap(name = "files/dirs", default_value = ".")]
     targets: Vec<String>,
 }
 
@@ -181,10 +174,6 @@ impl Args {
     pub fn union(&mut self, other: Self) {
         if other.filetypes.len() != 0 {
             self.filetypes = other.filetypes
-        }
-
-        if other.dirs.len() != 0 {
-            self.dirs = other.dirs
         }
 
         if other.ignore_dirs.len() != 0 {
@@ -197,6 +186,10 @@ impl Args {
 
         if other.jsonx.is_some() {
             self.jsonx = other.jsonx
+        }
+
+        if other.targets.len() != 0 {
+            self.targets = other.targets;
         }
     }
 }
@@ -319,7 +312,7 @@ mod tests {
             vec!["a".to_string(), "b".to_string(), "c".to_string()]
         );
 
-        let args = vec!["codeitlater", "-d", "src", "--", "a", "b", "c"];
+        let args = vec!["codeitlater", "--", "a", "b", "c"];
         assert_eq!(
             Args::parse_from(args).targets,
             vec!["a".to_string(), "b".to_string(), "c".to_string()]

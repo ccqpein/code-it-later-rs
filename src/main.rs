@@ -6,6 +6,7 @@ use code_it_later_rs::{
 
 fn main() {
     let commandline_args = config::Args::parse();
+    dbg!(&commandline_args);
     let args = match parse_from_current_path_config() {
         // if have local config
         Some(mut local_conf) => {

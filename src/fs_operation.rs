@@ -165,7 +165,7 @@ impl fmt::Display for Bread {
 }
 
 #[derive(Debug, Default, Clone)]
-struct Crumb {
+pub struct Crumb {
     line_num: usize,
     keyword: Option<String>,
     content: String,
@@ -305,16 +305,6 @@ pub fn handle_files(conf: &Config) -> impl Iterator<Item = Bread> {
     // first add all files in arguments
     let mut all_files: Vec<File> = files_in_dir_or_file_vec(&conf.files, conf).unwrap();
 
-    // then handle -dir option
-    all_files.append(
-        &mut conf
-            .dirs
-            .iter()
-            .map(|d| all_files_in_dir(d, conf).unwrap())
-            .flatten()
-            .collect(),
-    );
-
     // split to groups
     let threads_num = 24;
     let len = all_files.len();
@@ -350,7 +340,7 @@ mod tests {
         let (fs, dirs) = files_and_dirs_in_path("./tests/testcases", &Default::default())?;
 
         assert_eq!(dirs.len(), 0);
-        assert_eq!(fs[0].0, PathBuf::from("./tests/testcases/test.rs"),);
+        assert_eq!(fs[0].0, PathBuf::from("./tests/testcases/multilines.rs"),);
         Ok(())
     }
 
