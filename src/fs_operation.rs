@@ -138,14 +138,14 @@ fn file_checker(files: &mut Files, path: &Path, filetypes: &[OsString], filetype
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Bread {
     file_path: String,
     crumbs: Vec<Crumb>,
 }
 
 impl Bread {
-    fn new(f: String, crumbs: Vec<Crumb>) -> Self {
+    pub fn new(f: String, crumbs: Vec<Crumb>) -> Self {
         Bread {
             file_path: f,
             crumbs,
@@ -164,7 +164,7 @@ impl fmt::Display for Bread {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Crumb {
     line_num: usize,
     keyword: Option<String>,
@@ -192,6 +192,14 @@ impl Crumb {
         self.content = self.content.trim_end().trim_end_matches("...").to_string();
         self.content.push(' ');
         self.content.push_str(&tail.content);
+    }
+
+    pub fn new(line_num: usize, keyword: Option<String>, content: String) -> Self {
+        Self {
+            line_num,
+            keyword,
+            content,
+        }
     }
 }
 

@@ -6,7 +6,10 @@ use code_it_later_rs::{
 
 fn main() {
     let commandline_args = config::Args::parse();
+
+    #[cfg(debug_assertions)]
     dbg!(&commandline_args);
+
     let args = match parse_from_current_path_config() {
         // if have local config
         Some(mut local_conf) => {
@@ -17,6 +20,9 @@ fn main() {
     };
 
     let conf = config::Config::from(&args);
+
+    #[cfg(debug_assertions)]
     dbg!(&args, &conf);
+
     fs_operation::handle_files(&conf).for_each(|b| println!("{}", b));
 }

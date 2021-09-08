@@ -77,6 +77,11 @@ pub(super) fn make_key_regex(keywords: &Vec<String>) {
     *kk = Some(Regex::new(&format!("({}):\\s*(.*)", ss)).unwrap());
 }
 
+pub fn clean_keywords_table() {
+    let mut kk = KEYWORDS_REGEX.lock().unwrap();
+    *kk = None;
+}
+
 #[derive(Default, Debug, Clone)]
 pub struct Config {
     pub(super) filetypes: Vec<OsString>,
@@ -145,7 +150,7 @@ pub fn parse_from_current_path_config() -> Option<Args> {
 //:= DOC: this doc in -h, remember update with version
 /// Command Line Args
 #[derive(Default, Clap, Debug)]
-#[clap(version = "0.1.7", author = "ccQpein")]
+#[clap(version = "0.2.0", author = "ccQpein")]
 pub struct Args {
     /// What are the filetypes you want to scan.
     #[clap(short, long)]

@@ -1,6 +1,6 @@
 # README #
 
-**Other Versions:**
+**Other Versions (have some features different):**
 
 + [code_it_later_ml](https://github.com/ccqpein/code_it_later_ml) ocaml version
 + [code-it-later](https://github.com/ccqpein/code-it-later) clojure version
@@ -18,7 +18,7 @@ Make flags in source code where may have problems or can be optimized. codeitlat
 
 * get comments in source code
 * get comments depending on different key words
-* get comments in special path
+* get comments in special path of dir or files
 * can expand to other languages
 
 Languages support now:
@@ -37,6 +37,8 @@ If you wanna expand other languages, check [expand json file](#expand-json-file)
 ## Usage ##
 
 Write code as usual. The comment line that you want to leave mark in, left `:=` symbol after comment symbol.
+
+Then run `codeitlater` command in terminal get those crumbs back. 
 
 For example:
 
@@ -72,7 +74,7 @@ You will get:
 print("aaa") ###:= this line can be read again
 ```
 
-Run `codeitlater`
+Run `codeitlater /path/to/this_py.py`.
 
 You will get:
 
@@ -97,10 +99,18 @@ codeitlater -f clj -f py
 
 Then results both of clojure and python will return.
 
+When you are using options, put `--` before the targets. Like: 
 
-#### Specific path ####
+```
+codeitlater -f clj -f py -- /path/to/file /path/to/dir
+```
 
-Run `codeitlater -d /user/src/` let codeitlater just scan specific path.
+~~#### Specific path ####~~
+
+~~Run `codeitlater -d /user/src/` let codeitlater just scan specific path.~~
+
+`-d/--dir` option are desecrated. Use `codeitlater /user/src/ /other/path/ /other/file` instead.
+
 
 #### Mulit-line ####
 
