@@ -1,5 +1,7 @@
 # README #
 
+[![Crates.io](https://img.shields.io/crates/v/code-it-later-rs.svg)][https://crates.io/crates/code-it-later-rs]
+
 **Other Versions (have some features different):**
 
 + [code_it_later_ml](https://github.com/ccqpein/code_it_later_ml) ocaml version
