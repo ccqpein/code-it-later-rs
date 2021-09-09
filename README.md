@@ -1,6 +1,6 @@
 # README #
 
-[![Crates.io](https://img.shields.io/crates/v/code-it-later-rs.svg)][https://crates.io/crates/code-it-later-rs]
+[![Crates.io](https://img.shields.io/crates/v/code-it-later-rs.svg)](https://crates.io/crates/code-it-later-rs)
 
 **Other Versions (have some features different):**
 
