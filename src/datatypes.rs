@@ -64,6 +64,11 @@ impl Crumb {
             content,
         }
     }
+
+    pub fn to_org(&self) -> Result<String, String> {
+        //:= TODO
+        todo!()
+    }
 }
 
 impl fmt::Display for Crumb {
@@ -78,5 +83,33 @@ impl fmt::Display for Crumb {
         };
         write!(f, "Line {}: {}{}", self.line_num, a, self.content)?;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_filter_keyowrds() {
+        let mut a: Crumb = Default::default();
+        a.content = "TODO: test1".to_string();
+
+        assert!(a.filter_keywords(&Regex::new(&format!("({}):\\s*(.*)", "TODO")).unwrap()));
+        assert_eq!(a.keyword, Some("TODO".to_string()));
+
+        a.content = "TODO: test1".to_string();
+        assert!(
+            a.filter_keywords(&Regex::new(&format!("({}|{}):\\s*(.*)", "TODO", "MARK")).unwrap())
+        );
+        assert_eq!(a.keyword, Some("TODO".to_string()));
+        assert_eq!(a.content, "test1");
+
+        // test 2
+        let mut a: Crumb = Default::default();
+        a.content = "test1".to_string();
+
+        assert!(!a.filter_keywords(&Regex::new(&format!("({}):\\s*(.*)", "TODO")).unwrap()));
+        assert_eq!(a.keyword, None);
     }
 }

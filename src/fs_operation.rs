@@ -271,27 +271,4 @@ mod tests {
         assert_eq!(fs[0].0, PathBuf::from("./tests/testcases/multilines.rs"),);
         Ok(())
     }
-
-    #[test]
-    fn test_filter_keyowrds() {
-        let mut a: Crumb = Default::default();
-        a.content = "TODO: test1".to_string();
-
-        assert!(a.filter_keywords(&Regex::new(&format!("({}):\\s*(.*)", "TODO")).unwrap()));
-        assert_eq!(a.keyword, Some("TODO".to_string()));
-
-        a.content = "TODO: test1".to_string();
-        assert!(
-            a.filter_keywords(&Regex::new(&format!("({}|{}):\\s*(.*)", "TODO", "MARK")).unwrap())
-        );
-        assert_eq!(a.keyword, Some("TODO".to_string()));
-        assert_eq!(a.content, "test1");
-
-        // test 2
-        let mut a: Crumb = Default::default();
-        a.content = "test1".to_string();
-
-        assert!(!a.filter_keywords(&Regex::new(&format!("({}):\\s*(.*)", "TODO")).unwrap()));
-        assert_eq!(a.keyword, None);
-    }
 }
