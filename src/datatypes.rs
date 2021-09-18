@@ -65,9 +65,11 @@ impl Crumb {
         }
     }
 
-    pub fn to_org(&self) -> Result<String, String> {
-        //:= TODO
-        todo!()
+    pub fn to_org(&self) -> Result<String, !> {
+        match &self.keyword {
+            Some(k) => Ok(format!("{} {}", k, self.content)),
+            None => Ok(format!("{}", self.content)),
+        }
     }
 }
 
