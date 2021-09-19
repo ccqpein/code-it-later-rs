@@ -14,6 +14,19 @@ impl Bread {
             crumbs,
         }
     }
+
+    pub fn to_org(&self) -> Result<String, !> {
+        let mut content = format!("* {}\n", self.file_path);
+        self.crumbs
+            .iter()
+            .filter_map(|c| c.to_org())
+            .for_each(|org_inside| {
+                content += "** ";
+                content += &org_inside;
+                content += "\n"
+            });
+        Ok(content)
+    }
 }
 
 impl fmt::Display for Bread {
@@ -65,10 +78,11 @@ impl Crumb {
         }
     }
 
-    pub fn to_org(&self) -> Result<String, !> {
+    /// keyword crumb can transfer to org string
+    pub fn to_org(&self) -> Option<String> {
         match &self.keyword {
-            Some(k) => Ok(format!("{} {}", k, self.content)),
-            None => Ok(format!("{}", self.content)),
+            Some(k) => Some(format!("{} {}", k, self.content)),
+            None => None,
         }
     }
 }
@@ -113,5 +127,20 @@ mod tests {
 
         assert!(!a.filter_keywords(&Regex::new(&format!("({}):\\s*(.*)", "TODO")).unwrap()));
         assert_eq!(a.keyword, None);
+    }
+
+    #[test]
+    fn test_to_org() {
+        let b0 = Bread::new("a".into(), vec![]);
+        assert_eq!(b0.to_org().unwrap(), "* a\n".to_string());
+
+        let b1 = Bread::new(
+            "a".into(),
+            vec![
+                Crumb::new(1, None, "1".to_string()),
+                Crumb::new(2, Some("TODO".to_string()), "2".to_string()),
+            ],
+        );
+        assert_eq!(b1.to_org().unwrap(), "* a\n** TODO 2\n".to_string());
     }
 }
