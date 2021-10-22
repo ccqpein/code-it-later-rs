@@ -1,4 +1,4 @@
-use clap::Clap;
+use clap::Parser;
 use code_it_later_rs::{
     config::{self, parse_from_current_path_config},
     fs_operation,

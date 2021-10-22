@@ -1,4 +1,4 @@
-use clap::Clap;
+use clap::Parser;
 use lazy_static::*;
 use regex::Regex;
 use std::io::BufRead;
@@ -149,7 +149,7 @@ pub fn parse_from_current_path_config() -> Option<Args> {
 
 //:= DOC: this doc in -h, remember update with version
 /// Command Line Args
-#[derive(Default, Clap, Debug)]
+#[derive(Default, Parser, Debug)]
 #[clap(version = "0.2.1", author = "ccQpein")]
 pub struct Args {
     /// What are the filetypes you want to scan.
