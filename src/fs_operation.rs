@@ -229,6 +229,7 @@ fn op_file(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
     }
 }
 
+/// entry function of main logic
 pub fn handle_files(conf: &Config) -> impl Iterator<Item = Bread> {
     // first add all files in arguments
     let mut all_files: Vec<File> = files_in_dir_or_file_vec(&conf.files, conf).unwrap();

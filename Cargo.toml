@@ -1,6 +1,6 @@
 [package]
 name = "code-it-later-rs"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["ccQpein"]
 edition = "2021"
 description = "Filter crumbs you left in comments of code to remind where you were"
@@ -12,7 +12,7 @@ readme = "README.md"
 
 [dependencies]
 regex = "1"
-clap = "3.0.0-beta.5"
+clap = { version = "3", features = ["derive"] }
 serde_json = "1"
 lazy_static = "1"
 

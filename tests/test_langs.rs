@@ -1,6 +1,6 @@
-use clap::Clap;
+use clap::Parser;
 use code_it_later_rs::{
-    config::Args,
+    args::*,
     datatypes::{Bread, Crumb},
     *,
 };

@@ -1,11 +1,12 @@
 use clap::Parser;
 use code_it_later_rs::{
+    args::Args,
     config::{self, parse_from_current_path_config},
     fs_operation,
 };
 
 fn main() {
-    let commandline_args = config::Args::parse();
+    let commandline_args = Args::parse();
 
     #[cfg(debug_assertions)]
     dbg!(&commandline_args);
@@ -24,5 +25,9 @@ fn main() {
     #[cfg(debug_assertions)]
     dbg!(&args, &conf);
 
+    //:= check the answer like: are you sure in config here
+
     fs_operation::handle_files(&conf).for_each(|b| println!("{}", b));
+
+    //:= post check config
 }
