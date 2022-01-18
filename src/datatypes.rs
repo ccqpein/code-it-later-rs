@@ -43,6 +43,8 @@ impl fmt::Display for Bread {
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Crumb {
     pub(crate) line_num: usize,
+    /// store tail lines' numbers after `line_num`
+    tails_line_num: Vec<usize>,
     pub(crate) keyword: Option<String>,
     pub(crate) content: String,
 }
@@ -64,16 +66,18 @@ impl Crumb {
         self.content.ends_with("...")
     }
 
-    pub fn add_tail(&mut self, tail: &Self) {
+    pub fn add_tail(&mut self, tail: Self) {
         self.content = self.content.trim_end().trim_end_matches("...").to_string();
         self.content.push(' ');
         self.content.push_str(&tail.content);
+        self.tails_line_num.push(tail.line_num);
     }
 
     pub fn new(line_num: usize, keyword: Option<String>, content: String) -> Self {
         Self {
             line_num,
             keyword,
+            tails_line_num: vec![],
             content,
         }
     }

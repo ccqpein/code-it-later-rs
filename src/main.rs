@@ -27,7 +27,7 @@ fn main() {
 
     //:= check the answer like: are you sure in config here
 
-    fs_operation::handle_files(&conf).for_each(|b| println!("{}", b));
+    fs_operation::handle_files(conf.clone()).for_each(|b| println!("{}", b));
 
     //:= post check config
 }

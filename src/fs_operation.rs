@@ -4,6 +4,7 @@ use regex::Regex;
 use std::ffi::OsString;
 use std::fs::read_dir;
 use std::io::prelude::*;
+use std::sync::{Arc, RwLock};
 use std::{io::Result, path::Path, path::PathBuf, thread};
 
 /// Vector of all pathbufs
@@ -141,17 +142,22 @@ fn file_checker(files: &mut Files, path: &Path, filetypes: &[OsString], filetype
 /// Filter this line
 fn filter_line(line: &str, line_num: usize, re: &Regex) -> Option<Crumb> {
     match re.captures(line) {
-        Some(content) => Some(Crumb {
-            line_num,
-            keyword: None,
-            content: content[2].to_string(),
-        }),
+        Some(content) => Some(Crumb::new(line_num, None, content[2].to_string())),
         None => None,
     }
 }
 
 /// Operate this file
-fn op_file(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
+fn op_file(file: File, kwreg: &Option<Regex>, conf: Arc<RwLock<Config>>) -> Result<Option<Bread>> {
+    if !conf.read().unwrap().delete {
+        bake_bread(file, kwreg)
+    } else {
+        //:= delete logic in here
+        Ok(None)
+    }
+}
+
+fn bake_bread(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
     // start to read file
     let mut buf = vec![];
     let file_p = file.to_string();
@@ -191,7 +197,7 @@ fn op_file(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
                         Some(ref mut h) => {
                             if h.has_tail() {
                                 // if head has tail, add this line to head, continue
-                                h.add_tail(&cb);
+                                h.add_tail(cb);
                                 ss.clear(); // before continue, clear temp
                                 continue;
                             } else {
@@ -230,9 +236,9 @@ fn op_file(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
 }
 
 /// entry function of main logic
-pub fn handle_files(conf: &Config) -> impl Iterator<Item = Bread> {
+pub fn handle_files(conf: Config) -> impl Iterator<Item = Bread> {
     // first add all files in arguments
-    let mut all_files: Vec<File> = files_in_dir_or_file_vec(&conf.files, conf).unwrap();
+    let mut all_files: Vec<File> = files_in_dir_or_file_vec(&conf.files, &conf).unwrap();
 
     // split to groups
     let threads_num = 24;
@@ -244,13 +250,15 @@ pub fn handle_files(conf: &Config) -> impl Iterator<Item = Bread> {
     }
     groups.push(all_files.drain(0..).collect());
 
+    let conf = Arc::new(RwLock::new(conf));
     groups
         .into_iter()
-        .map(|fs| {
+        .map(move |fs| {
             let kwreg = KEYWORDS_REGEX.lock().unwrap().clone();
-            thread::spawn(move || {
+            let conf_c = Arc::clone(&conf);
+            thread::spawn(|| {
                 fs.into_iter()
-                    .map(|f| op_file(f, &kwreg).unwrap())
+                    .map(move |f| op_file(f, &kwreg, conf_c.clone()).unwrap())
                     .filter(|r| r.is_some())
                     .map(|q| q.unwrap())
                     .collect::<Vec<Bread>>()

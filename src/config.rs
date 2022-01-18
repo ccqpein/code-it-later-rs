@@ -85,11 +85,29 @@ pub fn clean_keywords_table() {
     *kk = None;
 }
 
+/// config when running
 #[derive(Default, Debug, Clone)]
 pub struct Config {
     pub(super) filetypes: Vec<OsString>,
     pub(super) ignore_dirs: Vec<OsString>,
     pub(super) files: Vec<String>,
+
+    /// if delete
+    pub(super) delete: bool,
+}
+
+impl Config {
+    pub fn prompt(&self) {
+        if self.delete {
+            let mut rl = rustyline::Editor::<()>::new();
+            let readline = rl.readline("Are you sure you want to delete crumbs? (y/n/s):");
+            match readline {
+                //:= todo
+                Ok(_) => todo!(),
+                Err(e) => println!("error in config prompt {}", e.to_string()),
+            }
+        }
+    }
 }
 
 impl From<&Args> for Config {
@@ -112,6 +130,8 @@ impl From<&Args> for Config {
             filetypes: a.filetypes.clone(),
             ignore_dirs: a.ignore_dirs.clone(),
             files: a.targets.clone(),
+
+            delete: a.delete,
         }
     }
 }
