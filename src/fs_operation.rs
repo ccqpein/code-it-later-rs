@@ -1,9 +1,10 @@
 use super::config::{Config, KEYWORDS_REGEX, REGEX_TABLE};
 use super::datatypes::*;
 use regex::Regex;
+use std::collections::HashSet;
 use std::ffi::OsString;
-use std::fs::read_dir;
-use std::io::prelude::*;
+use std::fs::{self, read_dir, OpenOptions};
+use std::io::{prelude::*, BufReader};
 use std::sync::{Arc, RwLock};
 use std::{io::Result, path::Path, path::PathBuf, thread};
 
@@ -149,14 +150,22 @@ fn filter_line(line: &str, line_num: usize, re: &Regex) -> Option<Crumb> {
 
 /// Operate this file
 fn op_file(file: File, kwreg: &Option<Regex>, conf: Arc<RwLock<Config>>) -> Result<Option<Bread>> {
+    let breads = bake_bread(file, kwreg)?;
     if !conf.read().unwrap().delete {
-        bake_bread(file, kwreg)
+        Ok(breads)
     } else {
         //:= delete logic in here
-        Ok(None)
+        match breads {
+            Some(bb) => {
+                clean_the_crumbs(bb)?;
+                Ok(None)
+            }
+            None => Ok(None),
+        }
     }
 }
 
+/// make bread for this file
 fn bake_bread(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
     // start to read file
     let mut buf = vec![];
@@ -233,6 +242,48 @@ fn bake_bread(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
     } else {
         Ok(Some(Bread::new(file_p, result)))
     }
+}
+
+/// clean crumbs and re-write the file
+///:= need more test
+fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<()> {
+    let f = fs::File::open(&file_path)?;
+    let reader = BufReader::new(f).lines();
+
+    let all_delete_lines = crumbs
+        .iter()
+        .map(|crumb| crumb.all_lines_num())
+        .flatten()
+        .collect();
+    let finish_deleted: Vec<u8> = delete_nth_lines(reader, all_delete_lines)?
+        .into_iter()
+        .map(|line| line.into_bytes())
+        .flatten()
+        .collect();
+
+    let mut new_file = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(file_path)?;
+    new_file.write_all(&finish_deleted)
+}
+
+fn delete_nth_lines(
+    f: impl Iterator<Item = Result<String>>,
+    ns: HashSet<usize>,
+) -> Result<Vec<String>> {
+    let mut result = vec![];
+    for (_, ll) in f
+        .enumerate()
+        .filter(|(line_num, _)| !ns.contains(&(*line_num + 1)))
+    {
+        match ll {
+            Ok(s) => result.push(s),
+            Err(e) => return Err(e),
+        }
+    }
+
+    Ok(result)
 }
 
 /// entry function of main logic

@@ -3,8 +3,8 @@ use std::fmt;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Bread {
-    file_path: String,
-    crumbs: Vec<Crumb>,
+    pub(super) file_path: String,
+    pub(super) crumbs: Vec<Crumb>,
 }
 
 impl Bread {
@@ -88,6 +88,13 @@ impl Crumb {
             Some(k) => Some(format!("{} {}", k, self.content)),
             None => None,
         }
+    }
+
+    /// return this crumb line_num and all tails line numbers if it has tails
+    pub fn all_lines_num(&self) -> Vec<usize> {
+        let mut a = vec![self.line_num];
+        a.append(&mut self.tails_line_num.clone());
+        a
     }
 }
 

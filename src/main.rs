@@ -20,14 +20,14 @@ fn main() {
         None => commandline_args,
     };
 
-    let conf = config::Config::from(&args);
+    let mut conf = config::Config::from(&args);
 
     #[cfg(debug_assertions)]
     dbg!(&args, &conf);
 
-    //:= check the answer like: are you sure in config here
-
-    fs_operation::handle_files(conf.clone()).for_each(|b| println!("{}", b));
-
-    //:= post check config
+    if let Err(e) = conf.prompt() {
+        println!("{}", e);
+        return;
+    };
+    fs_operation::handle_files(conf).for_each(|b| println!("{}", b));
 }

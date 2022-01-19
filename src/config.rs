@@ -97,15 +97,26 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn prompt(&self) {
-        if self.delete {
-            let mut rl = rustyline::Editor::<()>::new();
-            let readline = rl.readline("Are you sure you want to delete crumbs? (y/n/s):");
-            match readline {
-                //:= todo
-                Ok(_) => todo!(),
-                Err(e) => println!("error in config prompt {}", e.to_string()),
-            }
+    pub fn prompt(&mut self) -> Result<(), String> {
+        if !self.delete {
+            return Ok(());
+        }
+
+        let mut rl = rustyline::Editor::<()>::new();
+        let readline = rl.readline("Are you sure you want to delete crumbs? (y/n/s):");
+        match readline {
+            Ok(s) => match s.as_str() {
+                "y" => Ok(()),
+                "n" => {
+                    self.delete = false;
+                    Ok(())
+                }
+                "s" => {
+                    todo!()
+                } //:= todo
+                _ => Err("I don't understand, please give y/n/s".to_string()),
+            },
+            Err(e) => Err(format!("error in config prompt {}", e.to_string())),
         }
     }
 }
