@@ -246,7 +246,7 @@ fn bake_bread(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
 
 /// clean crumbs and re-write the file
 ///:= need more test
-fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<()> {
+pub fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<()> {
     let f = fs::File::open(&file_path)?;
     let reader = BufReader::new(f).lines();
 
@@ -255,17 +255,23 @@ fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<()> {
         .map(|crumb| crumb.all_lines_num())
         .flatten()
         .collect();
-    let finish_deleted: Vec<u8> = delete_nth_lines(reader, all_delete_lines)?
+    let finish_deleted = delete_nth_lines(reader, all_delete_lines)?
         .into_iter()
-        .map(|line| line.into_bytes())
-        .flatten()
-        .collect();
+        .map(|mut line| line.into_bytes());
 
     let mut new_file = OpenOptions::new()
         .write(true)
         .truncate(true)
         .open(file_path)?;
-    new_file.write_all(&finish_deleted)
+
+    let length = finish_deleted.len();
+    for (ind, line) in finish_deleted.enumerate() {
+        new_file.write_all(&line)?;
+        if ind != length - 1 {
+            new_file.write_all("\n".as_bytes())?
+        }
+    }
+    Ok(())
 }
 
 fn delete_nth_lines(

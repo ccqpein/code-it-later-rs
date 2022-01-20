@@ -18,7 +18,7 @@ fn test_multilines() {
     let conf = config::Config::from(&args);
 
     assert_eq!(
-        fs_operation::handle_files(&conf).collect::<Vec<_>>(),
+        fs_operation::handle_files(conf).collect::<Vec<_>>(),
         vec![Bread::new(
             "./tests/testcases/multilines.rs".to_string(),
             vec![

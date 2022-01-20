@@ -103,7 +103,7 @@ impl Config {
         }
 
         let mut rl = rustyline::Editor::<()>::new();
-        let readline = rl.readline("Are you sure you want to delete crumbs? (y/n/s):");
+        let readline = rl.readline("Are you sure you want to delete crumbs? (y/n):");
         match readline {
             Ok(s) => match s.as_str() {
                 "y" => Ok(()),
@@ -111,10 +111,8 @@ impl Config {
                     self.delete = false;
                     Ok(())
                 }
-                "s" => {
-                    todo!()
-                } //:= todo
-                _ => Err("I don't understand, please give y/n/s".to_string()),
+
+                _ => Err("I don't understand, please give y/n".to_string()),
             },
             Err(e) => Err(format!("error in config prompt {}", e.to_string())),
         }

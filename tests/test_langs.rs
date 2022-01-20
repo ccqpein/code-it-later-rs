@@ -18,7 +18,7 @@ fn test_rs_file() {
     let conf = config::Config::from(&args);
 
     assert_eq!(
-        fs_operation::handle_files(&conf).collect::<Vec<_>>(),
+        fs_operation::handle_files(conf).collect::<Vec<_>>(),
         vec![Bread::new(
             "./tests/testcases/test.rs".to_string(),
             vec![
@@ -42,7 +42,7 @@ fn test_py_file() {
     let conf = config::Config::from(&args);
 
     assert_eq!(
-        fs_operation::handle_files(&conf).collect::<Vec<_>>(),
+        fs_operation::handle_files(conf).collect::<Vec<_>>(),
         vec![Bread::new(
             "./tests/testcases/test.py".to_string(),
             vec![Crumb::new(1, None, "this is python".to_string()),]
@@ -63,7 +63,7 @@ fn test_go_file() {
     let conf = config::Config::from(&args);
 
     assert_eq!(
-        fs_operation::handle_files(&conf).collect::<Vec<_>>(),
+        fs_operation::handle_files(conf).collect::<Vec<_>>(),
         vec![Bread::new(
             "./tests/testcases/test.go".to_string(),
             vec![

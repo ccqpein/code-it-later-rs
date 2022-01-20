@@ -20,7 +20,7 @@ fn test_keywords() {
     let conf = config::Config::from(&args);
     //dbg!(&conf);
     assert_eq!(
-        fs_operation::handle_files(&conf).collect::<Vec<_>>(),
+        fs_operation::handle_files(conf).collect::<Vec<_>>(),
         vec![Bread::new(
             "./tests/testcases/keywords.lisp".to_string(),
             vec![Crumb::new(
