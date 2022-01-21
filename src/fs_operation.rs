@@ -154,7 +154,6 @@ fn op_file(file: File, kwreg: &Option<Regex>, conf: Arc<RwLock<Config>>) -> Resu
     if !conf.read().unwrap().delete {
         Ok(breads)
     } else {
-        //:= delete logic in here
         match breads {
             Some(bb) => {
                 clean_the_crumbs(bb)?;
@@ -245,7 +244,6 @@ fn bake_bread(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
 }
 
 /// clean crumbs and re-write the file
-///:= need more test
 pub fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<()> {
     let f = fs::File::open(&file_path)?;
     let reader = BufReader::new(f).lines();
@@ -257,7 +255,7 @@ pub fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<()> {
         .collect();
     let finish_deleted = delete_nth_lines(reader, all_delete_lines)?
         .into_iter()
-        .map(|mut line| line.into_bytes());
+        .map(|line| line.into_bytes());
 
     let mut new_file = OpenOptions::new()
         .write(true)

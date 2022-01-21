@@ -53,6 +53,10 @@ impl Args {
         if other.targets.len() != 0 {
             self.targets = other.targets;
         }
+
+        if other.delete {
+            self.delete = other.delete
+        }
     }
 }
 
