@@ -260,15 +260,14 @@ pub fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<()> {
     let mut new_file = OpenOptions::new()
         .write(true)
         .truncate(true)
-        .open(file_path)?;
+        .open(file_path.clone())?;
 
-    let length = finish_deleted.len();
-    for (ind, line) in finish_deleted.enumerate() {
+    for line in finish_deleted {
         new_file.write_all(&line)?;
-        if ind != length - 1 {
-            new_file.write_all("\n".as_bytes())?
-        }
+        new_file.write_all(b"\n")?
     }
+
+    println!("cleaned the crumbs in {}", file_path);
     Ok(())
 }
 

@@ -2,7 +2,6 @@ use clap::Parser;
 use code_it_later_rs::{
     args::Args,
     config::{self, parse_from_current_path_config},
-    fs_operation,
 };
 
 fn main() {
@@ -20,14 +19,10 @@ fn main() {
         None => commandline_args,
     };
 
-    let mut conf = config::Config::from(&args);
+    let conf = config::Config::from(&args);
 
     #[cfg(debug_assertions)]
     dbg!(&args, &conf);
 
-    if let Err(e) = conf.prompt() {
-        println!("{}", e);
-        return;
-    };
-    fs_operation::handle_files(conf).for_each(|b| println!("{}", b));
+    code_it_later_rs::prompt(conf).unwrap();
 }

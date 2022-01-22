@@ -7,3 +7,6 @@
 
 + v0.3.0
   + add `-D/--del` option for cleaning the crumbs
+
++ v0.3.1
+  + give notifies of what files' crumbs inside have been deleted

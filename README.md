@@ -2,6 +2,18 @@
 
 [![Crates.io](https://img.shields.io/crates/v/code-it-later-rs.svg)](https://crates.io/crates/code-it-later-rs)
 
+- [README](#readme)
+  - [Summary](#summary)
+  - [Install](#install)
+  - [Features](#features)
+  - [Usage](#usage)
+    - [Mulit-line](#mulitline)
+    - [Filter keyword](#filter-keyword)
+    - [Excluding some folder](#excluding-some-folder)
+    - [Expand json file](#expand-json-file)
+    - [Local arguments](#local-arguments)
+    - [Clean the crumbs](#clean-the-crumbs)
+
 **Other Versions (have some features different):**
 
 + [code_it_later_ml](https://github.com/ccqpein/code_it_later_ml) ocaml version
@@ -114,7 +126,7 @@ codeitlater -f clj -f py -- /path/to/file /path/to/dir
 `-d/--dir` option are desecrated. Use `codeitlater /user/src/ /other/path/ /other/file` instead.
 
 
-#### Mulit-line ####
+### Mulit-line ###
 
 When one line ending with `...`, then, the **next** line will add to this crumb. Also, you can make tail chain for this.
 
@@ -137,7 +149,8 @@ Will give you:
   |-- Line 4: line4 is diffrent with line5
   |-- Line 6: line6
 ```
-#### Filter keyword ####
+
+### Filter keyword ###
 
 Keyword format is `Keyword:` with a space after.
 
@@ -172,14 +185,18 @@ Both `codeitlater` and `codeitlater -k TODO` are showing
 
 `codeitlater -k MARK` will show nothing.
 
-#### Excluding some folder ####
+### Excluding some folder ###
 
 `codeitlater -x vendor` will ignore all files in vendor (recursively).
 
-#### Expand json file ####
+### Expand json file ###
 
 Check `tests/test.json`, if you run `codeitlater -j ./tests/test.json`, the "rs" in codeitlater's dictionary will be covered by new value in `test.json`. Other languages are keep same.
 
-#### Local arguments ####
+### Local arguments ###
 
 `codeitlater` will look for  `{$PWD}/.codeitlater` file to pre-load arguments. If any arguments those been given in command line, also set inside the `.codeitlater` file, will be rewrote by command line arguments. 
+
+### Clean the crumbs ###
+
+`codeitlater -D target` gonna clean all crumbs inside the files in the target folder
