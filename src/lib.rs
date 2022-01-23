@@ -7,9 +7,6 @@ pub mod config;
 pub mod datatypes;
 pub mod fs_operation;
 
-//:= TODO: can connect config with the prompt for implementing...
-//:= the feature that only clean special lines &&...
-//:= interact interface
 pub fn prompt(mut conf: config::Config) -> Result<Option<()>, String> {
     if conf.delete {
         // only delete is true gonna triger the prompt
@@ -57,7 +54,6 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<()>, String> {
                     Ok(None)
                 }
                 "i" => {
-                    //:= Need tests
                     conf.delete = false; // set false first
                     let breads: Vec<Bread> = fs_operation::handle_files(conf).collect();
                     for b in breads {
