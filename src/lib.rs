@@ -14,7 +14,7 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<()>, String> {
     if conf.delete {
         // only delete is true gonna triger the prompt
         let mut rl = rustyline::Editor::<()>::new();
-        let readline = rl.readline("Are you sure you want to delete crumbs? (y/n/s): ");
+        let readline = rl.readline("Are you sure you want to delete crumbs? (y/n/s/i): ");
         match readline {
             Ok(s) => match s.as_str() {
                 "y" => {
@@ -56,7 +56,35 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<()>, String> {
                     }
                     Ok(None)
                 }
+                "i" => {
+                    //:= Need tests
+                    conf.delete = false; // set false first
+                    let breads: Vec<Bread> = fs_operation::handle_files(conf).collect();
+                    for b in breads {
+                        println!("{}", b); // show breads
+                        let ask_again = rl.readline(&format!(
+                            "Do you want to delete {} 's crumb? (y/n): ",
+                            b.file_path
+                        ));
 
+                        match ask_again {
+                            Ok(ag) => match ag.as_str() {
+                                "y" => fs_operation::clean_the_crumbs(b).unwrap(),
+                                "n" => {
+                                    continue;
+                                }
+                                _ => {
+                                    println!("I don't understand, please give y/n");
+                                    break;
+                                }
+                            },
+                            Err(e) => {
+                                return Err(format!("error in prompt readline {}", e.to_string()));
+                            }
+                        }
+                    }
+                    Ok(None)
+                }
                 _ => return Err("I don't understand, please give y/n/s".to_string()),
             },
             Err(e) => return Err(format!("error in prompt readline {}", e.to_string())),

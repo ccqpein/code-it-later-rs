@@ -10,3 +10,6 @@
 
 + v0.3.1
   + give notifies of what files' crumbs inside have been deleted
+
++ v0.3.2
+  + give `i` interact mode for `-D/--del` options
