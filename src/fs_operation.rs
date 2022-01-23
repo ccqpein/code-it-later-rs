@@ -13,7 +13,7 @@ type Dirs = Vec<PathBuf>;
 
 /// File struct, including file path and the &Regex of this file
 /// &Regex CANNOT be nil
-//#[derive(Debug)]
+#[derive(Debug)]
 struct File(PathBuf, &'static Regex);
 
 impl File {
