@@ -113,6 +113,8 @@ impl fmt::Display for Crumb {
     }
 }
 
+pub trait InteractShow {}
+
 #[cfg(test)]
 mod tests {
     use super::*;

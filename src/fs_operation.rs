@@ -271,6 +271,13 @@ pub fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<()> {
     Ok(())
 }
 
+//:= clean crumbs by special line numbers
+pub fn clean_the_crumbs_on(
+    Bread { file_path, crumbs }: Bread,
+    line_nums: impl Iterator<Item = usize>,
+) {
+}
+
 fn delete_nth_lines(
     f: impl Iterator<Item = Result<String>>,
     ns: HashSet<usize>,

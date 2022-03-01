@@ -7,6 +7,10 @@ pub mod config;
 pub mod datatypes;
 pub mod fs_operation;
 
+//:= TODO:...
+//:= delete single line;...
+//:= interact prompt in single file delete;...
+//:= emacs interact.
 pub fn prompt(mut conf: config::Config) -> Result<Option<()>, String> {
     if conf.delete {
         // only delete is true gonna triger the prompt
@@ -89,4 +93,47 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<()>, String> {
         fs_operation::handle_files(conf).for_each(|b| println!("{}", b));
         Ok(None)
     }
+}
+
+/*:= comment for now
+pub fn prompt_root(mut conf: config::Config) -> Result<Option<()>, String> {
+    // Give crumbs first
+    let bread = fs_operation::handle_files(conf);
+
+    if conf.delete {
+        // only delete is true gonna triger the prompt
+        let mut rl = rustyline::Editor::<()>::new();
+        let readline = rl.readline("Are you sure you want to delete crumbs? (y/n/i): ");
+        match readline {
+            Ok(s) => match s.as_str() {
+                "y" => {
+                    //:= delete all
+                    todo!()
+                }
+                "n" => {
+                    //:= ignore delete
+                    todo!()
+                }
+                "i" => {
+                    //:= go to prompt_bread
+                    todo!()
+                }
+                _ => todo!(),
+            },
+            Err(e) => return Err(format!("error in prompt readline {}", e.to_string())),
+        }
+    } else {
+        Ok(None)
+    }
+}*/
+
+//:= pub fn prompt_bread(){}
+
+//:= pub fn prompt_crumbs
+
+pub fn prompt_interact<I, S>(a: I)
+where
+    S: datatypes::InteractShow,
+    I: Iterator<Item = S>,
+{
 }
