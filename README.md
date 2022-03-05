@@ -195,7 +195,7 @@ Check `tests/test.json`, if you run `codeitlater -j ./tests/test.json`, the "rs"
 
 ### Local arguments ###
 
-`codeitlater` will look for  `{$PWD}/.codeitlater` file to pre-load arguments. If any arguments those been given in command line, also set inside the `.codeitlater` file, will be rewrote by command line arguments. 
+`codeitlater` will look for  `{$PWD}/.codeitlater` file to pre-load arguments. If any arguments those been given in command line, also set inside the `.codeitlater` file, will be rewrote by command line arguments (**except ignore dirs (-x)**, ignore dirs configs located inside `.codeitlater` file and given in command line will merge together). 
 
 ### Clean the crumbs ###
 

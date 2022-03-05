@@ -13,7 +13,7 @@ fn main() {
     let args = match parse_from_current_path_config() {
         // if have local config
         Some(mut local_conf) => {
-            local_conf.union(commandline_args); // local union with commond line input
+            local_conf.cover(commandline_args); // local union with commond line input
             local_conf
         }
         None => commandline_args,

@@ -31,15 +31,15 @@ pub struct Args {
 }
 
 impl Args {
-    /// union this args with other, self values totally rewrotten by other
-    /// if both of args have same fields
-    pub fn union(&mut self, other: Self) {
+    /// cover this args with other, self values totally rewrotten by other
+    /// if both of args have same fields. Except ignore dirs, they are merged
+    pub fn cover(&mut self, mut other: Self) {
         if other.filetypes.len() != 0 {
             self.filetypes = other.filetypes
         }
 
         if other.ignore_dirs.len() != 0 {
-            self.ignore_dirs = other.ignore_dirs
+            self.ignore_dirs.append(&mut other.ignore_dirs)
         }
 
         if other.keywords.is_some() {
