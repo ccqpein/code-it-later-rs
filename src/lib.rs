@@ -127,27 +127,85 @@ pub fn prompt_root(mut conf: config::Config) -> Result<Option<()>, String> {
     }
 }*/
 
-//:= pub fn prompt_bread(){}
+pub fn prompt_2(mut conf: config::Config) -> Result<Option<()>, String> {
+    if conf.delete {
+        // only delete is true gonna triger the prompt
+        let mut rl = rustyline::Editor::<()>::new();
+        let readline = rl.readline("Are you sure you want to delete crumbs? (y/n/s/i): ");
 
-//:= pub fn prompt_crumbs
+        conf.delete = false; // set false first
 
-pub fn prompt_interact<I, S>(mut a: I, mut rl: rustyline::Editor<()>)
+        let breads = fs_operation::handle_files(conf);
+        //prompt_interact(breads,&mut rl)
+        Ok(None)
+    } else {
+        fs_operation::handle_files(conf).for_each(|b| println!("{}", b));
+        Ok(None)
+    }
+}
+
+pub fn prompt_interact<'a, I, S: 'a + ?Sized>(
+    mut a: I,
+    rl: &mut rustyline::Editor<()>,
+) -> Result<Vec<Vec<usize>>, String>
 where
     S: datatypes::InteractShow,
-    I: Iterator<Item = S>,
+    I: Iterator<Item = &'a S>,
 {
-    //let mut buffer = vec![];
+    let mut buffer = vec![];
     while let Some(item) = a.next() {
-        println!("{}", item);
-        match rl.readline(&format!(
-            "Are you sure you want to delete this {}? (y/n/s/i): ",
-            S::prompt_name()
-        )) {
-            Ok(_) => todo!(),
-            Err(_) => todo!(),
-        }
+        buffer.push(prompt_show_loop(item, rl)?);
+
         //:= show this item and ask the operation....
         //:= then collect all lines numbers...
         //:= delete all
     }
+
+    Ok(buffer)
+}
+
+pub fn prompt_show_loop<S: ?Sized>(
+    item: &S,
+    rl: &mut rustyline::Editor<()>,
+) -> Result<Vec<usize>, String>
+where
+    S: datatypes::InteractShow,
+{
+    let mut result = vec![];
+    loop {
+        println!("{}", item);
+        match rl.readline(&format!(
+            "Are you sure you want to delete this {}? (y/n/s/i): ",
+            item.prompt_name()
+        )) {
+            Ok(s) => match s.as_str() {
+                "y" => {
+                    item.op_lines_buffer();
+                }
+                "n" => {
+                    // do nothing
+                }
+                "s" => {
+                    continue; // stay in loop and show it again
+                }
+                "i" => {
+                    if let Some(d) = item.one_step_deep() {
+                        result = prompt_interact(d.iter().map(|a| a.as_ref()), rl)?
+                            .into_iter()
+                            .flatten()
+                            .collect();
+                    } else {
+                        println!("cannot interact deeper");
+                        continue;
+                    }
+                }
+                _ => {
+                    println!("I don't understand, please give y/n/s/i");
+                }
+            },
+            Err(e) => return Err(e.to_string()),
+        }
+        break;
+    }
+    Ok(result)
 }
