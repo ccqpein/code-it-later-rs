@@ -1,6 +1,7 @@
 use regex::Regex;
 use std::fmt;
 
+/// major data struct including file path and all crumbs
 #[derive(Debug, PartialEq, Eq)]
 pub struct Bread {
     pub(super) file_path: String,
@@ -40,6 +41,7 @@ impl fmt::Display for Bread {
     }
 }
 
+/// Crumb including the data of this line
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Crumb {
     pub(crate) line_num: usize,
@@ -113,7 +115,9 @@ impl fmt::Display for Crumb {
     }
 }
 
-pub trait InteractShow {}
+pub trait InteractShow: fmt::Display {
+    fn prompt_name() -> String;
+}
 
 #[cfg(test)]
 mod tests {

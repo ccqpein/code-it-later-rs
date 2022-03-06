@@ -245,14 +245,21 @@ fn bake_bread(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
 
 /// clean crumbs and re-write the file
 pub fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<()> {
+    let all_delete_lines = crumbs.iter().map(|crumb| crumb.all_lines_num()).flatten();
+
+    delete_lines_on(&file_path, all_delete_lines)?;
+
+    println!("cleaned the crumbs in {}", file_path);
+    Ok(())
+}
+
+/// delete special lines of the file on file_path
+pub fn delete_lines_on(file_path: &str, line_nums: impl Iterator<Item = usize>) -> Result<()> {
     let f = fs::File::open(&file_path)?;
     let reader = BufReader::new(f).lines();
 
-    let all_delete_lines = crumbs
-        .iter()
-        .map(|crumb| crumb.all_lines_num())
-        .flatten()
-        .collect();
+    let all_delete_lines = line_nums.collect();
+
     let finish_deleted = delete_nth_lines(reader, all_delete_lines)?
         .into_iter()
         .map(|line| line.into_bytes());
@@ -266,18 +273,10 @@ pub fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<()> {
         new_file.write_all(&line)?;
         new_file.write_all(b"\n")?
     }
-
-    println!("cleaned the crumbs in {}", file_path);
     Ok(())
 }
 
-//:= clean crumbs by special line numbers
-pub fn clean_the_crumbs_on(
-    Bread { file_path, crumbs }: Bread,
-    line_nums: impl Iterator<Item = usize>,
-) {
-}
-
+/// delete lines of file
 fn delete_nth_lines(
     f: impl Iterator<Item = Result<String>>,
     ns: HashSet<usize>,

@@ -131,9 +131,23 @@ pub fn prompt_root(mut conf: config::Config) -> Result<Option<()>, String> {
 
 //:= pub fn prompt_crumbs
 
-pub fn prompt_interact<I, S>(a: I)
+pub fn prompt_interact<I, S>(mut a: I, mut rl: rustyline::Editor<()>)
 where
     S: datatypes::InteractShow,
     I: Iterator<Item = S>,
 {
+    //let mut buffer = vec![];
+    while let Some(item) = a.next() {
+        println!("{}", item);
+        match rl.readline(&format!(
+            "Are you sure you want to delete this {}? (y/n/s/i): ",
+            S::prompt_name()
+        )) {
+            Ok(_) => todo!(),
+            Err(_) => todo!(),
+        }
+        //:= show this item and ask the operation....
+        //:= then collect all lines numbers...
+        //:= delete all
+    }
 }
