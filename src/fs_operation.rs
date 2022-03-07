@@ -4,7 +4,7 @@ use regex::Regex;
 use std::collections::HashSet;
 use std::ffi::OsString;
 use std::fs::{self, read_dir, OpenOptions};
-use std::io::{prelude::*, BufReader};
+use std::io::{self, prelude::*, BufReader};
 use std::sync::{Arc, RwLock};
 use std::{io::Result, path::Path, path::PathBuf, thread};
 
@@ -253,8 +253,28 @@ pub fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<()> {
     Ok(())
 }
 
+/// clean crumbs by special indexes
+pub fn clean_the_crumbs_on_special_index(
+    Bread { file_path, crumbs }: Bread,
+    indexes: HashSet<usize>,
+) -> Result<()> {
+    let mut all_delete_lines = vec![];
+    for ind in indexes {
+        match crumbs.get(ind) {
+            Some(c) => all_delete_lines.append(&mut c.all_lines_num()),
+            None => return Err(io::Error::other("cannot find crumb index in bread")),
+        }
+    }
+
+    delete_lines_on(&file_path, all_delete_lines.into_iter())?;
+
+    println!("cleaned special indexes of crumbs in {}", file_path);
+
+    Ok(())
+}
+
 /// delete special lines of the file on file_path
-pub fn delete_lines_on(file_path: &str, line_nums: impl Iterator<Item = usize>) -> Result<()> {
+fn delete_lines_on(file_path: &str, line_nums: impl Iterator<Item = usize>) -> Result<()> {
     let f = fs::File::open(&file_path)?;
     let reader = BufReader::new(f).lines();
 
