@@ -105,9 +105,9 @@ pub fn prompt_2(mut conf: config::Config) -> Result<Option<()>, String> {
         // only delete is true gonna triger the prompt
         let mut rl = rustyline::Editor::<()>::new();
         conf.delete = false;
-        let mut breads = fs_operation::handle_files(conf);
+        let breads = fs_operation::handle_files(conf).collect::<Vec<_>>();
         loop {
-            breads.by_ref().for_each(|b| println!("{}", b));
+            breads.iter().for_each(|b| println!("{}", b));
             match rl.readline("Are you sure you want to delete all crumbs? (y/n/s/i): ") {
                 Ok(s) => match s.as_str() {
                     "y" => {
@@ -117,7 +117,7 @@ pub fn prompt_2(mut conf: config::Config) -> Result<Option<()>, String> {
                     }
                     "n" => {} //do nothing
                     "s" => continue,
-                    "i" => prompt_bread(breads, &mut rl)?,
+                    "i" => prompt_bread(breads.into_iter(), &mut rl)?,
                     _ => return Err("I don't understand, please give y/n/s/i".to_string()),
                 },
                 Err(e) => return Err(format!("error in prompt readline {}", e.to_string())),
@@ -139,7 +139,10 @@ fn prompt_bread(
         loop {
             // incase need show again
             println!("{}", b);
-            match rl.readline("Are you sure you want to delete this bread? (y/n/s/i): ") {
+            match rl.readline(&format!(
+                "Are you sure you want to delete this bread {}? (y/n/s/i): ",
+                b.file_path
+            )) {
                 Ok(s) => match s.as_str() {
                     "y" => fs_operation::clean_the_crumbs(b).map_err(|e| e.to_string())?,
                     "n" => {}
@@ -148,7 +151,10 @@ fn prompt_bread(
                     }
                     "i" => {
                         let go_to_delete = prompt_crumbs(b.crumbs.iter(), rl)?;
-                        fs_operation::clean_the_crumbs_on_special_index(b, go_to_delete).unwrap()
+                        if go_to_delete.len() != 0 {
+                            fs_operation::clean_the_crumbs_on_special_index(b, go_to_delete)
+                                .unwrap()
+                        }
                     }
                     _ => {
                         println!("I don't understand, please give y/n/s/i");
@@ -190,70 +196,3 @@ fn prompt_crumbs<'a>(
     }
     Ok(going_to_delete_crumbs_indexes)
 }
-
-// pub fn prompt_interact<'a, I, S: 'a + ?Sized>(
-//     mut a: I,
-//     rl: &mut rustyline::Editor<()>,
-// ) -> Result<Vec<Vec<usize>>, String>
-// where
-//     S: datatypes::InteractShow,
-//     I: Iterator<Item = &'a S>,
-// {
-//     let mut buffer = vec![];
-//     while let Some(item) = a.next() {
-//         buffer.push(prompt_show_loop(item, rl)?);
-
-//         //:= show this item and ask the operation....
-//         //:= then collect all lines numbers...
-//         //:= delete all
-//     }
-
-//     Ok(buffer)
-// }
-
-// pub fn prompt_show_loop<S: ?Sized>(
-//     item: &S,
-//     rl: &mut rustyline::Editor<()>,
-// ) -> Result<Vec<usize>, String>
-// where
-//     S: datatypes::InteractShow,
-// {
-//     let mut result = vec![];
-//     loop {
-//         println!("{}", item);
-//         match rl.readline(&format!(
-//             "Are you sure you want to delete this {}? (y/n/s/i): ",
-//             item.prompt_name()
-//         )) {
-//             Ok(s) => match s.as_str() {
-//                 "y" => {
-//                     item.op_lines_buffer();
-//                 }
-//                 "n" => {
-//                     // do nothing
-//                 }
-//                 "s" => {
-//                     continue; // stay in loop and show it again
-//                 }
-//                 "i" => {
-//                     if let Some(d) = item.one_step_deep() {
-//                         // this recursive lost some information when jump two step.
-//                         result = prompt_interact(d.iter().map(|a| a.as_ref()), rl)?
-//                             .into_iter()
-//                             .flatten()
-//                             .collect();
-//                     } else {
-//                         println!("cannot interact deeper");
-//                         continue;
-//                     }
-//                 }
-//                 _ => {
-//                     println!("I don't understand, please give y/n/s/i");
-//                 }
-//             },
-//             Err(e) => return Err(e.to_string()),
-//         }
-//         break;
-//     }
-//     Ok(result)
-// }

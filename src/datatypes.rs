@@ -115,13 +115,6 @@ impl fmt::Display for Crumb {
     }
 }
 
-//:= no need
-// pub trait InteractShow: fmt::Display {
-//     fn prompt_name(&self) -> String;
-//     fn op_lines_buffer(&self) -> Vec<usize>;
-//     fn one_step_deep(&self) -> Option<Vec<Box<dyn InteractShow>>>;
-// }
-
 #[cfg(test)]
 mod tests {
     use super::*;

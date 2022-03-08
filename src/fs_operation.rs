@@ -259,8 +259,8 @@ pub fn clean_the_crumbs_on_special_index(
     indexes: HashSet<usize>,
 ) -> Result<()> {
     let mut all_delete_lines = vec![];
-    for ind in indexes {
-        match crumbs.get(ind) {
+    for ind in &indexes {
+        match crumbs.get(*ind) {
             Some(c) => all_delete_lines.append(&mut c.all_lines_num()),
             None => return Err(io::Error::other("cannot find crumb index in bread")),
         }
@@ -268,7 +268,7 @@ pub fn clean_the_crumbs_on_special_index(
 
     delete_lines_on(&file_path, all_delete_lines.into_iter())?;
 
-    println!("cleaned special indexes of crumbs in {}", file_path);
+    println!("cleaned {} crumbs in {}", indexes.len(), file_path);
 
     Ok(())
 }
