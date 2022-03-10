@@ -35,7 +35,7 @@ impl fmt::Display for Bread {
         write!(f, "|-- {}\n", self.file_path)?; // write file_path
 
         for c in &self.crumbs {
-            write!(f, "  |-- {}\n", c)?;
+            write!(f, "  |-- {}", c)?;
         }
         Ok(())
     }
@@ -110,7 +110,7 @@ impl fmt::Display for Crumb {
             }
             None => "".to_string(),
         };
-        write!(f, "Line {}: {}{}", self.line_num, a, self.content)?;
+        write!(f, "Line {}: {}{}\n", self.line_num, a, self.content)?;
         Ok(())
     }
 }
