@@ -199,4 +199,4 @@ Check `tests/test.json`, if you run `codeitlater -j ./tests/test.json`, the "rs"
 
 ### Clean the crumbs ###
 
-`codeitlater -D target` gonna clean all crumbs inside the files in the target folder
+`codeitlater -D target` gonna clean all crumbs inside the files in the target folder. Delete will give prompt interaction, which has `y/n/s/i` options. `y` means delete the bread/crumbs it just shows; `n` means ignore this; `s` means `show`, just re-print it again; `i` going to interact mode, show bread one by one or crumb one by one.

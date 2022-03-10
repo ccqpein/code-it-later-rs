@@ -24,5 +24,5 @@ fn main() {
     #[cfg(debug_assertions)]
     dbg!(&args, &conf);
 
-    code_it_later_rs::prompt_2(conf).unwrap();
+    code_it_later_rs::prompt(conf).unwrap();
 }
