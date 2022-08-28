@@ -96,29 +96,6 @@ pub struct Config {
     pub(super) delete: bool,
 }
 
-impl Config {
-    pub fn prompt(&mut self) -> Result<(), String> {
-        if !self.delete {
-            return Ok(());
-        }
-
-        let mut rl = rustyline::Editor::<()>::new();
-        let readline = rl.readline("Are you sure you want to delete crumbs? (y/n):");
-        match readline {
-            Ok(s) => match s.as_str() {
-                "y" => Ok(()),
-                "n" => {
-                    self.delete = false;
-                    Ok(())
-                }
-
-                _ => Err("I don't understand, please give y/n".to_string()),
-            },
-            Err(e) => Err(format!("error in config prompt {}", e.to_string())),
-        }
-    }
-}
-
 impl From<&Args> for Config {
     fn from(a: &Args) -> Self {
         match &a.jsonx {

@@ -28,6 +28,11 @@ pub struct Args {
     /// delete the crumbs
     #[clap(short = 'D', long = "del")]
     pub(crate) delete: bool,
+
+    //:= TODO: new fmt config
+    /// fmt command after delete
+    #[clap(long = "fmt")]
+    pub(crate) fmt_command: String,
 }
 
 impl Args {
@@ -106,5 +111,12 @@ mod tests {
         );
         assert_eq!(args.delete, true);
         assert_eq!(args.ignore_dirs, vec!["dd", "ff"]);
+    }
+
+    /// fmt command is the shell command, so it has to be string
+    #[test]
+    fn test_parse_the_fmt_string() {
+        let args = vec!["codeitlater", "--fmt", "\"aaa\""];
+        assert_eq!(Args::parse_from(args).fmt_command, "aaa") //:= TODO: fix this one
     }
 }

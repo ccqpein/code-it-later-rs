@@ -14,6 +14,8 @@ use datatypes::*;
 
 pub fn prompt(mut conf: config::Config) -> Result<Option<()>, String> {
     if conf.delete {
+        //:= TODO: fmt only after delete...
+        //:= if give the -F/--fmt
         // only delete is true gonna triger the prompt
         let mut rl = rustyline::Editor::<()>::new();
         conf.delete = false;
