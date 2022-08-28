@@ -29,10 +29,9 @@ pub struct Args {
     #[clap(short = 'D', long = "del")]
     pub(crate) delete: bool,
 
-    //:= TODO: new fmt config
-    /// fmt command after delete
+    /// format command after delete crumbs
     #[clap(long = "fmt")]
-    pub(crate) fmt_command: String,
+    pub(crate) fmt_command: Option<String>,
 }
 
 impl Args {
@@ -61,6 +60,10 @@ impl Args {
 
         if other.delete {
             self.delete = other.delete
+        }
+
+        if other.fmt_command.is_some() {
+            self.fmt_command = other.fmt_command
         }
     }
 }
@@ -116,7 +119,7 @@ mod tests {
     /// fmt command is the shell command, so it has to be string
     #[test]
     fn test_parse_the_fmt_string() {
-        let args = vec!["codeitlater", "--fmt", "\"aaa\""];
-        assert_eq!(Args::parse_from(args).fmt_command, "aaa") //:= TODO: fix this one
+        let args = vec!["codeitlater", "--fmt", "aaa bbb"];
+        assert_eq!(Args::parse_from(args).fmt_command.unwrap(), "aaa bbb")
     }
 }
