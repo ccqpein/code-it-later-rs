@@ -244,20 +244,20 @@ fn bake_bread(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
 }
 
 /// clean crumbs and re-write the file
-pub fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<()> {
+pub fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<String> {
     let all_delete_lines = crumbs.iter().map(|crumb| crumb.all_lines_num()).flatten();
 
     delete_lines_on(&file_path, all_delete_lines)?;
 
     println!("cleaned the crumbs in {}", file_path);
-    Ok(())
+    Ok(file_path)
 }
 
 /// clean crumbs by special indexes
 pub fn clean_the_crumbs_on_special_index(
     Bread { file_path, crumbs }: Bread,
     indexes: HashSet<usize>,
-) -> Result<()> {
+) -> Result<String> {
     let mut all_delete_lines = vec![];
     for ind in &indexes {
         match crumbs.get(*ind) {
@@ -270,7 +270,7 @@ pub fn clean_the_crumbs_on_special_index(
 
     println!("cleaned {} crumbs in {}", indexes.len(), file_path);
 
-    Ok(())
+    Ok(file_path)
 }
 
 /// delete special lines of the file on file_path
