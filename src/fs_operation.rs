@@ -5,6 +5,7 @@ use std::collections::HashSet;
 use std::ffi::OsString;
 use std::fs::{self, read_dir, OpenOptions};
 use std::io::{self, prelude::*, BufReader};
+use std::process::Command;
 use std::sync::{Arc, RwLock};
 use std::{io::Result, path::Path, path::PathBuf, thread};
 
@@ -296,7 +297,7 @@ fn delete_lines_on(file_path: &str, line_nums: impl Iterator<Item = usize>) -> R
     Ok(())
 }
 
-/// delete lines of file
+/// delete lines of file, return the new file contents without the lines deleted
 fn delete_nth_lines(
     f: impl Iterator<Item = Result<String>>,
     ns: HashSet<usize>,
@@ -313,6 +314,12 @@ fn delete_nth_lines(
     }
 
     Ok(result)
+}
+
+//:= TODO: finish this
+/// run format command with filepath input
+fn run_format_command_to_file(fmt_command: String, files: HashSet<String>) {
+    //Command::new()
 }
 
 /// entry function of main logic

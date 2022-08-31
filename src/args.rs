@@ -66,6 +66,10 @@ impl Args {
             self.fmt_command = other.fmt_command
         }
     }
+
+    pub fn fmt_command(&self) -> Option<&String> {
+        self.fmt_command.as_ref()
+    }
 }
 
 #[cfg(test)]

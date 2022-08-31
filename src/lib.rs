@@ -12,15 +12,13 @@ pub mod fs_operation;
 
 use datatypes::*;
 
-pub fn prompt(mut conf: config::Config) -> Result<Option<()>, String> {
+pub fn prompt(mut conf: config::Config) -> Result<Option<HashSet<String>>, String> {
     if conf.delete {
-        //:= TODO: fmt only after delete...
-        //:= if give the --fmt
         // only delete is true gonna triger the prompt
         let mut rl = rustyline::Editor::<()>::new();
         conf.delete = false;
         let breads = fs_operation::handle_files(conf).collect::<Vec<_>>();
-        let mut maybe_need_to_format = None;
+        let mut files_changed = None;
         loop {
             breads.iter().for_each(|b| println!("{}", b));
             match rl.readline("Are you sure you want to delete all crumbs? (y/n/s/i): ") {
@@ -32,19 +30,18 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<()>, String> {
                                 fs_operation::clean_the_crumbs(b).map_err(|e| e.to_string())?,
                             );
                         }
-                        maybe_need_to_format = Some(cache);
+                        files_changed = Some(cache);
                     }
-                    "n" => (), //do nothing
+                    "n" => (), // do nothing
                     "s" => continue,
-                    "i" => maybe_need_to_format = Some(prompt_bread(breads.into_iter(), &mut rl)?),
+                    "i" => files_changed = Some(prompt_bread(breads.into_iter(), &mut rl)?),
                     _ => return Err("I don't understand, please give y/n/s/i".to_string()),
                 },
                 Err(e) => return Err(format!("error in prompt readline {}", e.to_string())),
             }
             break;
         }
-        //:= format here
-        Ok(None)
+        Ok(files_changed)
     } else {
         fs_operation::handle_files(conf).for_each(|b| println!("{}", b));
         Ok(None)
@@ -55,7 +52,7 @@ fn prompt_bread(
     breads: impl Iterator<Item = Bread>,
     rl: &mut rustyline::Editor<()>,
 ) -> Result<HashSet<String>, String> {
-    let mut maybe_need_to_format = HashSet::new();
+    let mut files_changed = HashSet::new();
     for b in breads {
         loop {
             // incase need show again
@@ -66,7 +63,7 @@ fn prompt_bread(
             )) {
                 Ok(s) => match s.as_str() {
                     "y" => {
-                        maybe_need_to_format
+                        files_changed
                             .insert(fs_operation::clean_the_crumbs(b).map_err(|e| e.to_string())?);
                     }
                     "n" => {}
@@ -76,7 +73,7 @@ fn prompt_bread(
                     "i" => {
                         let go_to_delete = prompt_crumbs(b.crumbs.iter(), rl)?;
                         if go_to_delete.len() != 0 {
-                            maybe_need_to_format.insert(
+                            files_changed.insert(
                                 fs_operation::clean_the_crumbs_on_special_index(b, go_to_delete)
                                     .map_err(|e| e.to_string())?,
                             );
@@ -91,7 +88,7 @@ fn prompt_bread(
             break;
         }
     }
-    Ok(maybe_need_to_format)
+    Ok(files_changed)
 }
 
 fn prompt_crumbs<'a>(

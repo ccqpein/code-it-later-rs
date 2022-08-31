@@ -4,7 +4,7 @@ use code_it_later_rs::{
     config::{self, parse_from_current_path_config},
 };
 
-fn main() {
+fn main() -> Result<(), String> {
     let commandline_args = Args::parse();
 
     #[cfg(debug_assertions)]
@@ -24,5 +24,9 @@ fn main() {
     #[cfg(debug_assertions)]
     dbg!(&args, &conf);
 
-    code_it_later_rs::prompt(conf).unwrap();
+    if let Some(files_changed) = code_it_later_rs::prompt(conf)? && let Some(fmt) = args.fmt_command(){
+		//:= format here
+	};
+
+    Ok(())
 }
