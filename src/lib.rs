@@ -1,5 +1,6 @@
 #![feature(never_type)]
 #![feature(io_error_other)]
+#![feature(exit_status_error)]
 
 use std::collections::HashSet;
 

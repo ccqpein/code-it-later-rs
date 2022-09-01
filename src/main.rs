@@ -2,6 +2,7 @@ use clap::Parser;
 use code_it_later_rs::{
     args::Args,
     config::{self, parse_from_current_path_config},
+    fs_operation::run_format_command_to_file,
 };
 
 fn main() -> Result<(), String> {
@@ -25,7 +26,7 @@ fn main() -> Result<(), String> {
     dbg!(&args, &conf);
 
     if let Some(files_changed) = code_it_later_rs::prompt(conf)? && let Some(fmt) = args.fmt_command(){
-		//:= format here
+		run_format_command_to_file(fmt,files_changed)?
 	};
 
     Ok(())

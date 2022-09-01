@@ -316,10 +316,28 @@ fn delete_nth_lines(
     Ok(result)
 }
 
-//:= TODO: finish this
 /// run format command with filepath input
-fn run_format_command_to_file(fmt_command: String, files: HashSet<String>) {
-    //Command::new()
+pub fn run_format_command_to_file(
+    fmt_command: &str,
+    files: HashSet<String>,
+) -> std::result::Result<(), String> {
+    let mut command_splits = fmt_command.split(' ');
+    let first = command_splits
+        .next()
+        .ok_or("fmt_command cannot be emptye".to_string())?;
+
+    let mut comm = Command::new(first);
+    let mut child = comm
+        .args(command_splits)
+        .args(files.iter()) // add files at the endding
+        .spawn()
+        .expect("Cannot run the fmt_command");
+
+    child
+        .wait()
+        .expect("fmt command wasn't running")
+        .exit_ok()
+        .map_err(|e| e.to_string())
 }
 
 /// entry function of main logic
