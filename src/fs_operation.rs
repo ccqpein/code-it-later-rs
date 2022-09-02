@@ -319,7 +319,7 @@ fn delete_nth_lines(
 /// run format command with filepath input
 pub fn run_format_command_to_file(
     fmt_command: &str,
-    files: HashSet<String>,
+    files: impl IntoIterator<Item = String>,
 ) -> std::result::Result<(), String> {
     let mut command_splits = fmt_command.split(' ');
     let first = command_splits
@@ -329,7 +329,7 @@ pub fn run_format_command_to_file(
     let mut comm = Command::new(first);
     let mut child = comm
         .args(command_splits)
-        .args(files.iter()) // add files at the endding
+        .args(files) // add files at the endding
         .spawn()
         .expect("Cannot run the fmt_command");
 
