@@ -14,7 +14,7 @@ use super::args::Args;
 const DICT: &'static str = r#"
 {
 "rs":["//", "/\\*"],
-"go":["//", "/\\*"],
+"go":["//", "/\\*", "// "],
 "lisp":[";"],
 "py":["\\#"],
 "hs":["-- "],
@@ -257,9 +257,11 @@ mod tests {
         let re = Regex::new(&make_regex(&vec![
             String::from("//"),
             String::from(r#"/\*"#),
+            String::from(r#"// "#),
         ]))
         .unwrap();
         assert!(re.captures("err := test").is_none());
+        assert!(re.captures("err // := test").is_some());
     }
 
     #[test]

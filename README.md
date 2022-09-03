@@ -195,10 +195,20 @@ Check `tests/test.json`, if you run `codeitlater -j ./tests/test.json`, the "rs"
 
 ### Local arguments ###
 
-`codeitlater` will look for  `{$PWD}/.codeitlater` file to pre-load arguments. If any arguments those been given in command line, also set inside the `.codeitlater` file, will be rewrote by command line arguments (**except ignore dirs (-x)**, ignore dirs configs located inside `.codeitlater` file and given in command line will merge together). 
+`codeitlater` will look for `{$PWD}/.codeitlater` file to pre-load arguments. If any arguments those been given in command line, also set inside the `.codeitlater` file, will be rewrote by command line arguments (**except ignore dirs (-x)**, ignore dirs configs located inside `.codeitlater` file and given in command line will merge together). 
 
 ### Clean the crumbs ###
 
 `codeitlater -D target` gonna clean all crumbs inside the files in the target folder. Delete will give prompt interaction, which has `y/n/s/i` options. `y` means delete the bread/crumbs it just shows; `n` means ignore this; `s` means `show`, just re-print it again; `i` going to interact mode, show bread one by one or crumb one by one.
 
 You can delete special keywords with `codeitlater -D -k TODO`. Generally, `-D` handle after normal `codeitlater` workflow done.
+
+### Run format after clean the crumbs ###
+
+After clean some crumbs inside files, you might need some format after it. You can give the `--fmt` options let `codeitlater` run the command given after clean. 
+
+For example:
+
+`codeitlater -D --fmt "go fmt" .` will delete your crumbs and run the `go fmt {all files changed}`. All files changed will add the ending of the command `--fmt` gave.
+
+As all other options, you can add it inside the local `{$PWD}/.codeitlater`.

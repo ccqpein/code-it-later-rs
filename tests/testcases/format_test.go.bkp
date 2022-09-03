@@ -4,5 +4,7 @@ package main
 //:= aaa
 func main() {
 	//:= aaa
+	
+	//:= aaa
 
 }

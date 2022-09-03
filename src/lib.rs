@@ -31,7 +31,9 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<HashSet<String>>, Strin
                                 fs_operation::clean_the_crumbs(b).map_err(|e| e.to_string())?,
                             );
                         }
-                        files_changed = Some(cache);
+                        if !cache.is_empty() {
+                            files_changed = Some(cache)
+                        };
                     }
                     "n" => (), // do nothing
                     "s" => continue,
