@@ -298,6 +298,9 @@ fn delete_lines_on(file_path: &str, line_nums: impl Iterator<Item = usize>) -> R
 }
 
 /// delete lines of file, return the new file contents without the lines deleted
+//:= TODO: need add the feature that clean the crumb part rather than the whole line....
+//:= like:
+//:= let code = "this is code" //:= delete this part
 fn delete_nth_lines(
     f: impl Iterator<Item = Result<String>>,
     ns: HashSet<usize>,
