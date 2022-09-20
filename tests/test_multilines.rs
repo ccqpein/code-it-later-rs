@@ -23,17 +23,17 @@ fn test_multilines() {
             "./tests/testcases/multilines.rs".to_string(),
             vec![
                 {
-                    let mut cc = Crumb::new(1, None, "line1".to_string());
-                    cc.add_tail(Crumb::new(2, None, String::from("line2")));
-                    cc.add_tail(Crumb::new(3, None, String::from("and line3")));
+                    let mut cc = Crumb::new(1, 0, None, "line1".to_string());
+                    cc.add_tail(Crumb::new(2, 0, None, String::from("line2")));
+                    cc.add_tail(Crumb::new(3, 0, None, String::from("and line3")));
                     cc
                 },
                 {
-                    let mut cc = Crumb::new(5, None, "line4 is diffrent".to_string());
-                    cc.add_tail(Crumb::new(6, None, String::from("and line5")));
+                    let mut cc = Crumb::new(5, 0, None, "line4 is diffrent".to_string());
+                    cc.add_tail(Crumb::new(6, 0, None, String::from("and line5")));
                     cc
                 },
-                Crumb::new(7, None, "line6".to_string())
+                Crumb::new(7, 0, None, "line6".to_string())
             ]
         )]
     )

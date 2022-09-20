@@ -22,8 +22,8 @@ fn test_rs_file() {
         vec![Bread::new(
             "./tests/testcases/test.rs".to_string(),
             vec![
-                Crumb::new(1, None, "this is rust".to_string()),
-                Crumb::new(4, None, "this is also rust".to_string())
+                Crumb::new(1, 0, None, "this is rust".to_string()),
+                Crumb::new(4, 0, None, "this is also rust".to_string())
             ]
         )]
     );
@@ -45,7 +45,7 @@ fn test_py_file() {
         fs_operation::handle_files(conf).collect::<Vec<_>>(),
         vec![Bread::new(
             "./tests/testcases/test.py".to_string(),
-            vec![Crumb::new(1, None, "this is python".to_string()),]
+            vec![Crumb::new(1, 0, None, "this is python".to_string()),]
         )]
     );
 }
@@ -67,9 +67,15 @@ fn test_go_file() {
         vec![Bread::new(
             "./tests/testcases/test.go".to_string(),
             vec![
-                Crumb::new(3, None, "this line can be read by codeitlater".to_string()),
+                Crumb::new(
+                    3,
+                    0,
+                    None,
+                    "this line can be read by codeitlater".to_string()
+                ),
                 Crumb::new(
                     4,
+                    0,
                     None,
                     "MARK: you can left keyword to marked comment line".to_string()
                 )

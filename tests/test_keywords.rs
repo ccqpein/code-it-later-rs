@@ -25,6 +25,7 @@ fn test_keywords() {
             "./tests/testcases/keywords.lisp".to_string(),
             vec![Crumb::new(
                 1,
+                0,
                 Some("TODO".to_string()),
                 "this is TODO".to_string()
             ),]

@@ -1,3 +1,5 @@
+#![feature(let_chains)]
+
 use clap::Parser;
 use code_it_later_rs::{
     args::Args,

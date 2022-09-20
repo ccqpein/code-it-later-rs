@@ -45,6 +45,8 @@ impl fmt::Display for Bread {
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Crumb {
     pub(crate) line_num: usize, //:= maybe add the position of the line
+    /// the position of the crumb start from in this line
+    pub(crate) position: usize,
     /// store tail lines' numbers after `line_num`
     tails_line_num: Vec<usize>,
     pub(crate) keyword: Option<String>,
@@ -76,9 +78,10 @@ impl Crumb {
         self.tails_line_num.push(tail.line_num);
     }
 
-    pub fn new(line_num: usize, keyword: Option<String>, content: String) -> Self {
+    pub fn new(line_num: usize, position: usize, keyword: Option<String>, content: String) -> Self {
         Self {
             line_num,
+            position,
             keyword,
             tails_line_num: vec![],
             content,
@@ -151,8 +154,8 @@ mod tests {
         let b1 = Bread::new(
             "a".into(),
             vec![
-                Crumb::new(1, None, "1".to_string()),
-                Crumb::new(2, Some("TODO".to_string()), "2".to_string()),
+                Crumb::new(1, 0, None, "1".to_string()),
+                Crumb::new(2, 0, Some("TODO".to_string()), "2".to_string()),
             ],
         );
         assert_eq!(b1.to_org().unwrap(), "* a\n** TODO 2\n".to_string());

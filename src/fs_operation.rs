@@ -143,8 +143,12 @@ fn file_checker(files: &mut Files, path: &Path, filetypes: &[OsString], filetype
 
 /// Filter this line
 fn filter_line(line: &str, line_num: usize, re: &Regex) -> Option<Crumb> {
-    match re.captures(line) {
-        Some(content) => Some(Crumb::new(line_num, None, content[2].to_string())),
+    match re.find(line) {
+        Some(mat) => {
+            let position = mat.start();
+            let content = re.captures(line).unwrap()[2].to_string();
+            Some(Crumb::new(line_num, position, None, content))
+        }
         None => None,
     }
 }
@@ -387,5 +391,14 @@ mod tests {
         assert_eq!(dirs.len(), 0);
         assert_eq!(fs[0].0, PathBuf::from("./tests/testcases/multilines.rs"),);
         Ok(())
+    }
+
+    #[test]
+    fn test_filter_line() {
+        let testcase = " aaa//:= abd";
+        assert_eq!(
+            filter_line(testcase, 0, REGEX_TABLE.lock().unwrap().get("rs").unwrap()),
+            Some(Crumb::new(0, 4, None, "abd".to_string()))
+        )
     }
 }
