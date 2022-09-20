@@ -399,6 +399,12 @@ mod tests {
         assert_eq!(
             filter_line(testcase, 0, REGEX_TABLE.lock().unwrap().get("rs").unwrap()),
             Some(Crumb::new(0, 4, None, "abd".to_string()))
+        );
+
+        let testcase = " aaa///:= abd";
+        assert_eq!(
+            filter_line(testcase, 0, REGEX_TABLE.lock().unwrap().get("rs").unwrap()),
+            Some(Crumb::new(0, 4, None, "abd".to_string()))
         )
     }
 }

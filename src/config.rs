@@ -61,6 +61,7 @@ fn make_regex(com_syms: &Vec<String>) -> String {
     for s in com_syms {
         head.push('|');
         head.push_str(s);
+        head.push_str("+");
     }
 
     let _ = head.drain(..1).collect::<String>();
@@ -170,7 +171,7 @@ mod tests {
 
         assert_eq!(
             REGEX_TABLE.lock().unwrap().get("rs").unwrap().as_str(),
-            &String::from(r#"(//|/\*):=\s+(.*)"#)
+            &String::from(r#"(//+|/\*+):=\s+(.*)"#)
         );
 
         // update here
@@ -183,7 +184,7 @@ mod tests {
 
         assert_eq!(
             REGEX_TABLE.lock().unwrap().get("rs").unwrap().as_str(),
-            &String::from(r#"(//|#):=\s+(.*)"#)
+            &String::from(r#"(//+|#+):=\s+(.*)"#)
         );
 
         // more test
@@ -201,7 +202,7 @@ mod tests {
 
         assert_eq!(
             REGEX_TABLE.lock().unwrap().get("rs").unwrap().as_str(),
-            &String::from(r#"(//|/\*):=\s+(.*)"#)
+            &String::from(r#"(//+|/\*+):=\s+(.*)"#)
         );
     }
 
@@ -226,12 +227,12 @@ mod tests {
     fn test_make_regex() {
         assert_eq!(
             make_regex(&vec![String::from("//"), String::from(";")]),
-            String::from(r#"(//|;):=\s+(.*)"#)
+            String::from(r#"(//+|;+):=\s+(.*)"#)
         );
 
         assert_eq!(
             make_regex(&vec![String::from("//"), String::from(r#"/\*"#)]),
-            String::from(r#"(//|/\*):=\s+(.*)"#)
+            String::from(r#"(//+|/\*+):=\s+(.*)"#)
         );
     }
 
