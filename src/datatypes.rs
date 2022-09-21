@@ -48,7 +48,7 @@ pub struct Crumb {
     /// the position of the crumb start from in this line
     pub(crate) position: usize,
     /// store tail lines' numbers after `line_num`
-    tails_line_num: Vec<usize>,
+    tails_line_num: Vec<usize>, //:= TODO: change Vec<usize> -> Vec<Crumb>
     pub(crate) keyword: Option<String>,
     pub(crate) content: String,
 }
@@ -71,6 +71,7 @@ impl Crumb {
     }
 
     /// add tail crumbs in this one
+    //:= TODO: insteading of add tail line number, should add the whole tail
     pub fn add_tail(&mut self, tail: Self) {
         self.content = self.content.trim_end().trim_end_matches("...").to_string();
         self.content.push(' ');
