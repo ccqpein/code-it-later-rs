@@ -44,11 +44,11 @@ impl fmt::Display for Bread {
 /// Crumb including the data of this line
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Crumb {
-    pub(crate) line_num: usize, //:= maybe add the position of the line
+    pub(crate) line_num: usize,
     /// the position of the crumb start from in this line
     pub(crate) position: usize,
     /// store tail lines' numbers after `line_num`
-    tails_line_num: Vec<usize>, //:= TODO: change Vec<usize> -> Vec<Crumb>
+    tails: Vec<Crumb>,
     pub(crate) keyword: Option<String>,
     pub(crate) content: String,
 }
@@ -71,12 +71,11 @@ impl Crumb {
     }
 
     /// add tail crumbs in this one
-    //:= TODO: insteading of add tail line number, should add the whole tail
     pub fn add_tail(&mut self, tail: Self) {
         self.content = self.content.trim_end().trim_end_matches("...").to_string();
         self.content.push(' ');
         self.content.push_str(&tail.content);
-        self.tails_line_num.push(tail.line_num);
+        self.tails.push(tail);
     }
 
     pub fn new(line_num: usize, position: usize, keyword: Option<String>, content: String) -> Self {
@@ -84,7 +83,7 @@ impl Crumb {
             line_num,
             position,
             keyword,
-            tails_line_num: vec![],
+            tails: vec![],
             content,
         }
     }
@@ -100,7 +99,7 @@ impl Crumb {
     /// return this crumb line_num and all tails line numbers if it has tails
     pub fn all_lines_num(&self) -> Vec<usize> {
         let mut a = vec![self.line_num];
-        a.append(&mut self.tails_line_num.clone());
+        a.append(&mut self.tails.iter().map(|t| t.line_num).collect());
         a
     }
 }

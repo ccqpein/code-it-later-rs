@@ -24,7 +24,7 @@ fn test_multilines() {
             vec![
                 {
                     let mut cc = Crumb::new(1, 0, None, "line1".to_string());
-                    cc.add_tail(Crumb::new(2, 0, None, String::from("line2")));
+                    cc.add_tail(Crumb::new(2, 0, None, String::from("line2...")));
                     cc.add_tail(Crumb::new(3, 0, None, String::from("and line3")));
                     cc
                 },
