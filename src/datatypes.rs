@@ -72,6 +72,7 @@ impl Crumb {
 
     /// add tail crumbs in this one
     pub fn add_tail(&mut self, tail: Self) {
+        // update the first crumb's content
         self.content = self.content.trim_end().trim_end_matches("...").to_string();
         self.content.push(' ');
         self.content.push_str(&tail.content);
@@ -100,6 +101,19 @@ impl Crumb {
     pub fn all_lines_num(&self) -> Vec<usize> {
         let mut a = vec![self.line_num];
         a.append(&mut self.tails.iter().map(|t| t.line_num).collect());
+        a
+    }
+
+    /// return this crumb line numbers and the position of lines pairs
+    pub fn all_lines_num_postion_pair(&self) -> Vec<(usize, usize)> {
+        let mut a = vec![(self.line_num, self.position)];
+        a.append(
+            &mut self
+                .tails
+                .iter()
+                .map(|t| (t.line_num, t.position))
+                .collect(),
+        );
         a
     }
 }

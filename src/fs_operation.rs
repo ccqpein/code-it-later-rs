@@ -1,7 +1,7 @@
 use super::config::{Config, KEYWORDS_REGEX, REGEX_TABLE};
 use super::datatypes::*;
 use regex::Regex;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::ffi::OsString;
 use std::fs::{self, read_dir, OpenOptions};
 use std::io::{self, prelude::*, BufReader};
@@ -250,9 +250,12 @@ fn bake_bread(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
 
 /// clean crumbs and re-write the file
 pub fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<String> {
-    let all_delete_lines = crumbs.iter().map(|crumb| crumb.all_lines_num()).flatten();
+    let all_delete_line_postion_pairs = crumbs
+        .iter()
+        .map(|crumb| crumb.all_lines_num_postion_pair())
+        .flatten();
 
-    delete_lines_on(&file_path, all_delete_lines)?;
+    delete_lines_on(&file_path, all_delete_line_postion_pairs)?;
 
     println!("cleaned the crumbs in {}", file_path);
     Ok(file_path)
@@ -266,7 +269,7 @@ pub fn clean_the_crumbs_on_special_index(
     let mut all_delete_lines = vec![];
     for ind in &indexes {
         match crumbs.get(*ind) {
-            Some(c) => all_delete_lines.append(&mut c.all_lines_num()),
+            Some(c) => all_delete_lines.append(&mut c.all_lines_num_postion_pair()),
             None => return Err(io::Error::other("cannot find crumb index in bread")),
         }
     }
@@ -279,11 +282,14 @@ pub fn clean_the_crumbs_on_special_index(
 }
 
 /// delete special lines of the file on file_path
-fn delete_lines_on(file_path: &str, line_nums: impl Iterator<Item = usize>) -> Result<()> {
+fn delete_lines_on(
+    file_path: &str,
+    line_num_pos_pairs: impl Iterator<Item = (usize, usize)>,
+) -> Result<()> {
     let f = fs::File::open(&file_path)?;
     let reader = BufReader::new(f).lines();
 
-    let all_delete_lines = line_nums.collect();
+    let all_delete_lines = line_num_pos_pairs.collect();
 
     let finish_deleted = delete_nth_lines(reader, all_delete_lines)?
         .into_iter()
@@ -301,22 +307,24 @@ fn delete_lines_on(file_path: &str, line_nums: impl Iterator<Item = usize>) -> R
     Ok(())
 }
 
-/// delete lines of file, return the new file contents without the lines deleted
-//:= TODO: need add the feature that clean the crumb part rather than the whole line....
-//:= like:
-//:= let code = "this is code" //:= delete this part
+/// delete crumbs of file, return the new file contents without the crumbs deleted
 fn delete_nth_lines(
     f: impl Iterator<Item = Result<String>>,
-    ns: HashSet<usize>,
+    nm: HashMap<usize, usize>,
 ) -> Result<Vec<String>> {
     let mut result = vec![];
-    for (_, ll) in f
-        .enumerate()
-        .filter(|(line_num, _)| !ns.contains(&(*line_num + 1)))
-    {
-        match ll {
-            Ok(s) => result.push(s),
-            Err(e) => return Err(e),
+
+    for (line_num, ll) in f.enumerate() {
+        if nm.contains_key(&(line_num + 1)) {
+            let mut new_l = ll?;
+            new_l.truncate(*nm.get(&(line_num + 1)).unwrap());
+            if new_l == "" {
+                // empty line just skip
+                continue;
+            }
+            result.push(new_l);
+        } else {
+            result.push(ll?);
         }
     }
 

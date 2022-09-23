@@ -2,7 +2,7 @@ package main
 
 //:= TODO: aaaaaaaaaaaaa,...
 //:= aaa
-func main() {
+func main() { //:= main
 	//:= aaa
 	
 	//:= aaa
