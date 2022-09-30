@@ -3,34 +3,34 @@ use std::ffi::OsString;
 
 /// Command Line Args
 #[derive(Default, Parser, Debug)]
-#[clap(author = "ccQpein", version, about)]
+#[command(author = "ccQpein", version, about)]
 pub struct Args {
     /// What are the filetypes you want to scan.
-    #[clap(short, long)]
+    #[arg(short, long)]
     pub(crate) filetypes: Vec<OsString>,
 
     /// The folder name should ignored
-    #[clap(short = 'x', long = "ignore-dir")]
+    #[arg(short = 'x', long = "ignore-dir")]
     pub(crate) ignore_dirs: Vec<OsString>,
 
     /// Keywords
-    #[clap(short, long)]
+    #[arg(short, long)]
     pub(crate) keywords: Option<Vec<String>>,
 
     /// Expand dictionary json file path
-    #[clap(short, long)]
+    #[arg(short, long)]
     pub(crate) jsonx: Option<String>,
 
     /// files/dirs input directly
-    #[clap(name = "files/dirs", default_value = ".")]
+    #[arg(value_name = "files/dirs", default_value = ".")]
     pub(crate) targets: Vec<String>,
 
     /// delete the crumbs
-    #[clap(short = 'D', long = "del")]
+    #[arg(short = 'D', long = "del")]
     pub(crate) delete: bool,
 
     /// format command after delete crumbs
-    #[clap(long = "fmt")]
+    #[arg(long = "fmt")]
     pub(crate) fmt_command: Option<String>,
 }
 
