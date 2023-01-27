@@ -9,6 +9,7 @@ use code_it_later_rs::{
 
 fn main() -> Result<(), String> {
     let commandline_args = Args::parse();
+    env_logger::init();
 
     #[cfg(debug_assertions)]
     dbg!(&commandline_args);

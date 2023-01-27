@@ -1,1 +1,1 @@
--x target
+-x target -x tests

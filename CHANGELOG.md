@@ -13,3 +13,19 @@
 
 + v0.3.2
   + give `i` interact mode for `-D/--del` options
+
++ v0.4.0
+  + enhance `-D/--del`
+
++ v0.5.0
+  + new `fmt` argv
+
++ v0.5.1
+  + bug fixed
+
++ v0.5.2
+  + clap 4 update
+  
++ v0.5.3
+  + add `debug!` into some function for debugging
+  + fix some unwrap issue

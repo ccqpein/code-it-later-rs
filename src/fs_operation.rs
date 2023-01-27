@@ -1,5 +1,6 @@
 use super::config::{Config, KEYWORDS_REGEX, REGEX_TABLE};
 use super::datatypes::*;
+use log::debug;
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::ffi::OsString;
@@ -155,7 +156,14 @@ fn filter_line(line: &str, line_num: usize, re: &Regex) -> Option<Crumb> {
 
 /// Operate this file
 fn op_file(file: File, kwreg: &Option<Regex>, conf: Arc<RwLock<Config>>) -> Result<Option<Bread>> {
-    let breads = bake_bread(file, kwreg)?;
+    let breads = match bake_bread(&file, kwreg) {
+        Ok(b) => b,
+        Err(e) => {
+            debug!("file {} had error {}", file.to_string(), e.to_string());
+            return Ok(None);
+        }
+    };
+
     if !conf.read().unwrap().delete {
         Ok(breads)
     } else {
@@ -170,11 +178,11 @@ fn op_file(file: File, kwreg: &Option<Regex>, conf: Arc<RwLock<Config>>) -> Resu
 }
 
 /// make bread for this file
-fn bake_bread(file: File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
+fn bake_bread(file: &File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
     // start to read file
     let mut buf = vec![];
     let file_p = file.to_string();
-    let mut f: std::fs::File = std::fs::File::open(file.0)?;
+    let mut f: std::fs::File = std::fs::File::open(file.0.clone())?;
     f.read_to_end(&mut buf)?;
 
     let mut line_num = 0;
@@ -378,9 +386,7 @@ pub fn handle_files(conf: Config) -> impl Iterator<Item = Bread> {
             let conf_c = Arc::clone(&conf);
             thread::spawn(|| {
                 fs.into_iter()
-                    .map(move |f| op_file(f, &kwreg, conf_c.clone()).unwrap())
-                    .filter(|r| r.is_some())
-                    .map(|q| q.unwrap())
+                    .filter_map(move |f| op_file(f, &kwreg, conf_c.clone()).unwrap())
                     .collect::<Vec<Bread>>()
             })
         })
