@@ -1,3 +1,5 @@
+//! The arguments of codeitlater are using
+
 use clap::Parser;
 use std::ffi::OsString;
 
@@ -32,6 +34,11 @@ pub struct Args {
     /// format command after delete crumbs
     #[arg(long = "fmt")]
     pub(crate) fmt_command: Option<String>,
+
+    /// output format:
+    /// + json
+    #[arg(short = "O", long = "output-format")]
+    pub(crate) output_format: Option<String>,
 }
 
 impl Args {
@@ -64,6 +71,10 @@ impl Args {
 
         if other.fmt_command.is_some() {
             self.fmt_command = other.fmt_command
+        }
+
+        if other.output_format.is_some() {
+            self.output_format = other.output_format
         }
     }
 

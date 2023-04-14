@@ -46,6 +46,7 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<HashSet<String>>, Strin
         }
         Ok(files_changed)
     } else {
+        //:= NEXT: export to json? Change the display impl
         fs_operation::handle_files(conf).for_each(|b| println!("{}", b));
         Ok(None)
     }
