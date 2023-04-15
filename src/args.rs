@@ -1,7 +1,11 @@
 //! The arguments of codeitlater are using
 
 use clap::Parser;
-use std::ffi::OsString;
+use std::{
+    ffi::OsString,
+    fs::File,
+    io::{BufRead, BufReader},
+};
 
 /// Command Line Args
 #[derive(Default, Parser, Debug)]
@@ -35,9 +39,8 @@ pub struct Args {
     #[arg(long = "fmt")]
     pub(crate) fmt_command: Option<String>,
 
-    /// output format:
-    /// + json
-    #[arg(short = "O", long = "output-format")]
+    /// output format: json
+    #[arg(short = 'O', long = "output-format")]
     pub(crate) output_format: Option<String>,
 }
 
@@ -80,6 +83,67 @@ impl Args {
 
     pub fn fmt_command(&self) -> Option<&String> {
         self.fmt_command.as_ref()
+    }
+}
+
+fn split_space_exclude_those_in_inner_string(s: &str) -> Result<Vec<String>, String> {
+    let mut result = vec![];
+    let mut buf = vec![];
+    let mut in_string = false;
+
+    for b in s.bytes() {
+        if b == b' ' && !in_string {
+            if !buf.is_empty() {
+                result.push(String::from_utf8(buf).map_err(|e| e.to_string())?);
+                buf = vec![];
+            }
+        } else {
+            if b == b'"' {
+                in_string ^= true;
+                continue;
+            }
+            buf.push(b);
+        }
+    }
+
+    if !buf.is_empty() {
+        result.push(String::from_utf8(buf).map_err(|e| e.to_string())?);
+    }
+
+    Ok(result)
+}
+
+fn read_config_raw_content<R: BufRead>(content: R) -> Vec<String> {
+    let buf_reader = BufReader::new(content);
+    let mut a = vec!["codeitlater".to_string()];
+    a.append(
+        &mut buf_reader
+            .lines()
+            .filter_map(|l| {
+                let ll = l.unwrap();
+                if ll.is_empty() {
+                    None
+                } else {
+                    Some(
+                        split_space_exclude_those_in_inner_string(&ll).unwrap(), // ll.split_whitespace()
+                                                                                 // .map(|s| s.to_string())
+                                                                                 // .collect::<Vec<String>>(),
+                    )
+                }
+            })
+            .flatten()
+            .collect::<Vec<String>>(),
+    );
+    a
+}
+
+pub fn parse_from_current_path_config() -> Option<Args> {
+    match File::open(".codeitlater") {
+        Ok(f) => Some(Args::parse_from(read_config_raw_content(BufReader::new(f)))),
+        Err(_e) => {
+            //println!("{}", _e.to_string());
+            None
+        }
     }
 }
 
@@ -131,10 +195,30 @@ mod tests {
         assert_eq!(args.ignore_dirs, vec!["dd", "ff"]);
     }
 
+    #[test]
+    fn test_read_current_path_config() {
+        let content = "
+-x target
+
+-k    TODO"
+            .as_bytes();
+        //dbg!(read_config_raw_content(content));
+        assert_eq!(
+            vec!["codeitlater", "-x", "target", "-k", "TODO"],
+            read_config_raw_content(content)
+        );
+    }
+
     /// fmt command is the shell command, so it has to be string
     #[test]
     fn test_parse_the_fmt_string() {
         let args = vec!["codeitlater", "--fmt", "aaa bbb"];
-        assert_eq!(Args::parse_from(args).fmt_command.unwrap(), "aaa bbb")
+        assert_eq!(Args::parse_from(args).fmt_command.unwrap(), "aaa bbb");
+
+        let args = vec!["codeitlater", "--fmt", r#""cargo fmt""#];
+        assert_eq!(
+            Args::parse_from(args).fmt_command.unwrap(),
+            r#""cargo fmt""#
+        )
     }
 }

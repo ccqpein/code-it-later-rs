@@ -13,6 +13,8 @@
     - [Expand json file](#expand-json-file)
     - [Local arguments](#local-arguments)
     - [Clean the crumbs](#clean-the-crumbs)
+	- [Run format after clean the crumbs](#run-format-after-clean-the-crumbs)
+	- [Output to different format of files](#output-to-different-format-of-files)
 
 **Other Versions (have some features different):**
 
@@ -209,6 +211,20 @@ After clean some crumbs inside files, you might need some format after it. You c
 
 For example:
 
-`codeitlater -D --fmt "go fmt" .` will delete your crumbs and run the `go fmt {all files changed}`. All files changed will add the ending of the command `--fmt` gave.
+`codeitlater -D --fmt "go fmt" .` will delete your crumbs and run the `go fmt`. The command after `--fmt` has to be the standalone command.
 
 As all other options, you can add it inside the local `{$PWD}/.codeitlater`.
+
+### Output to different format of files ###
+
+`-O/--output-format` can output the crumbs in specific format. 
+
+Support format:
+
++ json
+
+Example:
+
+```shell
+codeitlater -O json .
+```

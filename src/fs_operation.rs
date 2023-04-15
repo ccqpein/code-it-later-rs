@@ -352,7 +352,8 @@ pub fn run_format_command_to_file(
     let mut comm = Command::new(first);
     let mut child = comm
         .args(command_splits)
-        .args(files) // add files at the endding
+        //:= TODO: change doc
+        //.args(files) // add files at the endding
         .spawn()
         .expect("Cannot run the fmt_command");
 

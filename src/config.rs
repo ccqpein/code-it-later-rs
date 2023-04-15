@@ -1,12 +1,11 @@
-use clap::Parser;
 use lazy_static::*;
 use regex::Regex;
 use std::collections::HashMap;
 use std::ffi::OsString;
-use std::io::BufRead;
+
+use std::fs::File;
 use std::io::Read;
 use std::sync::Mutex;
-use std::{fs::File, io::BufReader};
 
 use super::args::Args;
 
@@ -86,6 +85,18 @@ pub fn clean_keywords_table() {
     *kk = None;
 }
 
+#[derive(Clone, Debug)]
+pub(super) enum OutputFormat {
+    None,
+    Json,
+}
+
+impl Default for OutputFormat {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
 /// config when running
 #[derive(Default, Debug, Clone)]
 pub struct Config {
@@ -95,6 +106,9 @@ pub struct Config {
 
     /// if delete
     pub(super) delete: bool,
+
+    /// output format
+    pub(super) output: OutputFormat,
 }
 
 impl From<&Args> for Config {
@@ -113,46 +127,18 @@ impl From<&Args> for Config {
             None => (),
         }
 
+        let output = match &a.output_format {
+            Some(v) if v == "json" => OutputFormat::Json,
+            _ => OutputFormat::None,
+        };
+
         Self {
             filetypes: a.filetypes.clone(),
             ignore_dirs: a.ignore_dirs.clone(),
             files: a.targets.clone(),
 
             delete: a.delete,
-        }
-    }
-}
-
-fn read_config_raw_content<R: BufRead>(content: R) -> Vec<String> {
-    let buf_reader = BufReader::new(content);
-    let mut a = vec!["codeitlater".to_string()];
-    a.append(
-        &mut buf_reader
-            .lines()
-            .filter_map(|l| {
-                let ll = l.unwrap();
-                if ll.is_empty() {
-                    None
-                } else {
-                    Some(
-                        ll.split_whitespace()
-                            .map(|s| s.to_string())
-                            .collect::<Vec<String>>(),
-                    )
-                }
-            })
-            .flatten()
-            .collect::<Vec<String>>(),
-    );
-    a
-}
-
-pub fn parse_from_current_path_config() -> Option<Args> {
-    match File::open(".codeitlater") {
-        Ok(f) => Some(Args::parse_from(read_config_raw_content(BufReader::new(f)))),
-        Err(_e) => {
-            //println!("{}", _e.to_string());
-            None
+            output,
         }
     }
 }
@@ -263,19 +249,5 @@ mod tests {
         .unwrap();
         assert!(re.captures("err := test").is_none());
         assert!(re.captures("err // := test").is_some());
-    }
-
-    #[test]
-    fn test_read_current_path_config() {
-        let content = "
--x target
-
--k    TODO"
-            .as_bytes();
-        //dbg!(read_config_raw_content(content));
-        assert_eq!(
-            vec!["codeitlater", "-x", "target", "-k", "TODO"],
-            read_config_raw_content(content)
-        );
     }
 }

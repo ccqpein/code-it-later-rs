@@ -1,8 +1,9 @@
 use regex::Regex;
+use serde::Serialize;
 use std::fmt;
 
 /// major data struct including file path and all crumbs
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Bread {
     pub(super) file_path: String,
     pub(super) crumbs: Vec<Crumb>,
@@ -42,13 +43,17 @@ impl fmt::Display for Bread {
 }
 
 /// Crumb including the data of this line
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize)]
 pub struct Crumb {
     pub(crate) line_num: usize,
+
+    #[serde(skip)]
     /// the position of the crumb start from in this line
     pub(crate) position: usize,
+
     /// store tail lines' numbers after `line_num`
     tails: Vec<Crumb>,
+
     pub(crate) keyword: Option<String>,
     pub(crate) content: String,
 }

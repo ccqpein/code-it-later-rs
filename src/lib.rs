@@ -46,8 +46,18 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<HashSet<String>>, Strin
         }
         Ok(files_changed)
     } else {
-        //:= NEXT: export to json? Change the display impl
-        fs_operation::handle_files(conf).for_each(|b| println!("{}", b));
+        match conf.output {
+            config::OutputFormat::None => {
+                fs_operation::handle_files(conf).for_each(|b| println!("{}", b))
+            }
+            config::OutputFormat::Json => {
+                println!(
+                    "{}",
+                    serde_json::to_string(&fs_operation::handle_files(conf).collect::<Vec<_>>())
+                        .map_err(|e| e.to_string())?
+                )
+            }
+        }
         Ok(None)
     }
 }

@@ -1,1 +1,1 @@
--x target -x tests
+-x target -x tests --fmt "cargo fmt"

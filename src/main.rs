@@ -2,10 +2,11 @@
 
 use clap::Parser;
 use code_it_later_rs::{
-    args::Args,
-    config::{self, parse_from_current_path_config},
+    args::{parse_from_current_path_config, Args},
+    config,
     fs_operation::run_format_command_to_file,
 };
+use std::{thread, time};
 
 fn main() -> Result<(), String> {
     let commandline_args = Args::parse();
