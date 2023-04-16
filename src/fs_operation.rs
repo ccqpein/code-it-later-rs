@@ -342,7 +342,7 @@ fn delete_nth_lines(
 /// run format command with filepath input
 pub fn run_format_command_to_file(
     fmt_command: &str,
-    files: impl IntoIterator<Item = String>,
+    _files: impl IntoIterator<Item = String>,
 ) -> std::result::Result<(), String> {
     let mut command_splits = fmt_command.split(' ');
     let first = command_splits

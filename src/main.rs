@@ -6,7 +6,6 @@ use code_it_later_rs::{
     config,
     fs_operation::run_format_command_to_file,
 };
-use std::{thread, time};
 
 fn main() -> Result<(), String> {
     let commandline_args = Args::parse();
