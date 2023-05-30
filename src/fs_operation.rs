@@ -347,7 +347,7 @@ pub fn run_format_command_to_file(
     let mut command_splits = fmt_command.split(' ');
     let first = command_splits
         .next()
-        .ok_or("fmt_command cannot be emptye".to_string())?;
+        .ok_or("fmt_command cannot be empty".to_string())?;
 
     let mut comm = Command::new(first);
     let mut child = comm
@@ -357,6 +357,7 @@ pub fn run_format_command_to_file(
         .spawn()
         .expect("Cannot run the fmt_command");
 
+    println!("running fmt command: {}", fmt_command);
     child
         .wait()
         .expect("fmt command wasn't running")
