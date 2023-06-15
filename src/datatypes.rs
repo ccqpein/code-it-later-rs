@@ -56,6 +56,8 @@ pub struct Crumb {
 
     pub(crate) keyword: Option<String>,
     pub(crate) content: String,
+
+    ignore: bool,
 }
 
 impl Crumb {
@@ -91,6 +93,7 @@ impl Crumb {
             keyword,
             tails: vec![],
             content,
+            ignore: false,
         }
     }
 
@@ -120,6 +123,16 @@ impl Crumb {
                 .collect(),
         );
         a
+    }
+
+    // add the ignore flag to this crumb
+    pub fn add_ignore_flag(mut self) -> Self {
+        self.ignore = true;
+        self
+    }
+
+    pub fn is_ignore(&self) -> bool {
+        self.ignore
     }
 }
 
@@ -163,6 +176,17 @@ mod tests {
 
         assert!(!a.filter_keywords(&Regex::new(&format!("({}):\\s*(.*)", "TODO")).unwrap()));
         assert_eq!(a.keyword, None);
+
+        // test 3
+        let mut a: Crumb = Default::default();
+        a.content = "!TODO: test3".to_string();
+        a.ignore = true;
+        dbg!(&a);
+        assert!(
+            a.filter_keywords(&Regex::new(&format!("({}|{}):\\s*(.*)", "TODO", "MARK")).unwrap())
+        );
+        dbg!(&a);
+        assert_eq!(a.keyword, Some("TODO".to_string()));
     }
 
     #[test]

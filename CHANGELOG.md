@@ -29,3 +29,10 @@
 + v0.5.3
   + add `debug!` into some function for debugging
   + fix some unwrap issue
+
++ v0.5.4
+  + fix the --fmt bug inside .codeitlater file
+  + output to different file format, so far only json
+
++ v0.5.5
+  + A bit processing output

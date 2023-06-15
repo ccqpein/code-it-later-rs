@@ -148,7 +148,11 @@ fn filter_line(line: &str, line_num: usize, re: &Regex) -> Option<Crumb> {
         Some(mat) => {
             let position = mat.start();
             let content = re.captures(line).unwrap()[2].to_string();
-            Some(Crumb::new(line_num, position, None, content))
+            if content.starts_with('!') {
+                Some(Crumb::new(line_num, position, None, content).add_ignore_flag())
+            } else {
+                Some(Crumb::new(line_num, position, None, content))
+            }
         }
         None => None,
     }
@@ -194,11 +198,14 @@ fn bake_bread(file: &File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
     // closure for keywords feature
     let mut keyword_checker_and_push = |mut cb: Crumb| {
         if kwreg.is_some() {
+            // filter_keywords will update keyword even the crumb is ignored
             if cb.filter_keywords(kwreg.as_ref().unwrap()) {
                 result.push(cb)
             }
         } else {
-            result.push(cb)
+            if !cb.is_ignore() {
+                result.push(cb)
+            }
         }
     };
 
