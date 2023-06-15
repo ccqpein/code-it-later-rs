@@ -115,18 +115,9 @@ codeitlater -f clj -f py
 
 Then results both of clojure and python will return.
 
-When you are using options, put `--` before the targets. Like: 
-
 ```
-codeitlater -f clj -f py -- /path/to/file /path/to/dir
+codeitlater -f clj -f py /path/to/file /path/to/dir
 ```
-
-~~#### Specific path ####~~
-
-~~Run `codeitlater -d /user/src/` let codeitlater just scan specific path.~~
-
-`-d/--dir` option are desecrated. Use `codeitlater /user/src/ /other/path/ /other/file` instead.
-
 
 ### Mulit-line ###
 
@@ -186,6 +177,17 @@ Both `codeitlater` and `codeitlater -k TODO` are showing
 > |-- Line 1: TODO: aaaa bbb MARK: ccc
 
 `codeitlater -k MARK` will show nothing.
+
+### Ignore with keyword ###
+
+This is the special feature I use in my work. For example:
+
+```rust
+//:= !JIRA-123: hello world
+//:= line2
+```
+
+The first line "hello world" will be ignore because it start with `'!'`. The only way to show this line is give the keyword `JIRA-123` like `codeitlater -k JIRA-123`
 
 ### Excluding some folder ###
 

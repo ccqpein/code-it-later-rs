@@ -1,5 +1,5 @@
 use lazy_static::*;
-use regex::Regex;
+use regex::{Regex, RegexBuilder};
 use std::collections::HashMap;
 use std::ffi::OsString;
 
@@ -24,6 +24,7 @@ const DICT: &'static str = r#"
 "#;
 
 lazy_static! {
+    /// The table including all languages filetype and its comment symbols
     static ref TABLE: Mutex<HashMap<String, Vec<String>>> =
         Mutex::new(serde_json::from_str(DICT).unwrap());
 
@@ -68,6 +69,7 @@ fn make_regex(com_syms: &Vec<String>) -> String {
     format!("({}):=\\s+(.*)", head)
 }
 
+/// making the keyword regex, case insensitive
 pub(super) fn make_key_regex(keywords: &Vec<String>) {
     let mut ss = String::new();
     for s in keywords {
@@ -77,7 +79,12 @@ pub(super) fn make_key_regex(keywords: &Vec<String>) {
 
     let _ = ss.drain(ss.len() - 1..).collect::<String>();
     let mut kk = KEYWORDS_REGEX.lock().unwrap();
-    *kk = Some(Regex::new(&format!("({}):\\s*(.*)", ss)).unwrap());
+    *kk = Some(
+        RegexBuilder::new(&format!("({}):\\s*(.*)", ss))
+            .case_insensitive(true)
+            .build()
+            .unwrap(),
+    );
 }
 
 pub fn clean_keywords_table() {

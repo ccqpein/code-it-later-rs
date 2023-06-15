@@ -5,3 +5,4 @@ bbb
 //:= bbb
 ccc
 ddd //:= del
+//:= !TODO: ignore keyword

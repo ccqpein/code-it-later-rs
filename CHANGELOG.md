@@ -36,3 +36,7 @@
 
 + v0.5.5
   + A bit processing output
+
++ v0.6.0
+  + Add ignore\_with\_keyword crumb feature
+  + Keyword is case insensitive now

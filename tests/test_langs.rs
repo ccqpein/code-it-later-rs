@@ -11,7 +11,6 @@ fn test_rs_file() {
         "codeitlater",
         "-x",
         "target",
-        "--",
         "./tests/testcases/test.rs",
     ]);
 
