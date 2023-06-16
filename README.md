@@ -7,14 +7,15 @@
   - [Install](#install)
   - [Features](#features)
   - [Usage](#usage)
-    - [Mulit-line](#mulitline)
+    - [Mulit-line](#mulit-line)
     - [Filter keyword](#filter-keyword)
+    - [Ignore with keyword](#ignore-with-keyword)
     - [Excluding some folder](#excluding-some-folder)
     - [Expand json file](#expand-json-file)
     - [Local arguments](#local-arguments)
     - [Clean the crumbs](#clean-the-crumbs)
-	- [Run format after clean the crumbs](#run-format-after-clean-the-crumbs)
-	- [Output to different format of files](#output-to-different-format-of-files)
+    - [Run format after clean the crumbs](#run-format-after-clean-the-crumbs)
+    - [Output to different format of files](#output-to-different-format-of-files)
 
 **Other Versions (have some features different):**
 
@@ -187,7 +188,9 @@ This is the special feature I use in my work. For example:
 //:= line2
 ```
 
-The first line "hello world" will be ignore because it start with `'!'`. The only way to show this line is give the keyword `JIRA-123` like `codeitlater -k JIRA-123`
+The first line "hello world" will be ignore because it start with `'!'`. To show this line is give the keyword `JIRA-123` like `codeitlater -k JIRA-123`
+
+Or give the `--show-ignored` true if you want to show everything, like `codeitlater --show-ignored true`.
 
 ### Excluding some folder ###
 

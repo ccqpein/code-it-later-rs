@@ -160,7 +160,7 @@ fn filter_line(line: &str, line_num: usize, re: &Regex) -> Option<Crumb> {
 
 /// Operate this file
 fn op_file(file: File, kwreg: &Option<Regex>, conf: Arc<RwLock<Config>>) -> Result<Option<Bread>> {
-    let breads = match bake_bread(&file, kwreg) {
+    let breads = match bake_bread(&file, kwreg, &conf.read().unwrap()) {
         Ok(b) => b,
         Err(e) => {
             debug!("file {} had error {}", file.to_string(), e.to_string());
@@ -182,7 +182,7 @@ fn op_file(file: File, kwreg: &Option<Regex>, conf: Arc<RwLock<Config>>) -> Resu
 }
 
 /// make bread for this file
-fn bake_bread(file: &File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
+fn bake_bread(file: &File, kwreg: &Option<Regex>, conf: &Config) -> Result<Option<Bread>> {
     // start to read file
     let mut buf = vec![];
     let file_p = file.to_string();
@@ -203,7 +203,7 @@ fn bake_bread(file: &File, kwreg: &Option<Regex>) -> Result<Option<Bread>> {
                 result.push(cb)
             }
         } else {
-            if !cb.is_ignore() {
+            if !cb.is_ignore() || conf.show_ignored {
                 result.push(cb)
             }
         }

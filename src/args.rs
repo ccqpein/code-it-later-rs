@@ -42,6 +42,10 @@ pub struct Args {
     /// output format: json
     #[arg(short = 'O', long = "output-format")]
     pub(crate) output_format: Option<String>,
+
+    /// show all ignored crumbs
+    #[arg(long = "show-ignored", default_value = "false")]
+    pub(crate) show_ignore: Option<bool>,
 }
 
 impl Args {
@@ -78,6 +82,10 @@ impl Args {
 
         if other.output_format.is_some() {
             self.output_format = other.output_format
+        }
+
+        if other.show_ignore.is_some() {
+            self.show_ignore = other.show_ignore
         }
     }
 
@@ -124,11 +132,7 @@ fn read_config_raw_content<R: BufRead>(content: R) -> Vec<String> {
                 if ll.is_empty() {
                     None
                 } else {
-                    Some(
-                        split_space_exclude_those_in_inner_string(&ll).unwrap(), // ll.split_whitespace()
-                                                                                 // .map(|s| s.to_string())
-                                                                                 // .collect::<Vec<String>>(),
-                    )
+                    Some(split_space_exclude_those_in_inner_string(&ll).unwrap())
                 }
             })
             .flatten()

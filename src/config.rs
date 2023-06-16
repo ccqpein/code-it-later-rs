@@ -116,6 +116,9 @@ pub struct Config {
 
     /// output format
     pub(super) output: OutputFormat,
+
+    /// show ignored
+    pub(super) show_ignored: bool,
 }
 
 impl From<&Args> for Config {
@@ -146,6 +149,7 @@ impl From<&Args> for Config {
 
             delete: a.delete,
             output,
+            show_ignored: a.show_ignore.unwrap_or(false),
         }
     }
 }
