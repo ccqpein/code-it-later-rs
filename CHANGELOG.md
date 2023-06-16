@@ -40,3 +40,6 @@
 + v0.6.0
   + Add ignore\_with\_keyword crumb feature
   + Keyword is case insensitive now
+
++ v0.6.1
+  + Add show ignored features
