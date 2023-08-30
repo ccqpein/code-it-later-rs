@@ -313,7 +313,7 @@ fn delete_lines_on(
     let mut new_file = OpenOptions::new()
         .write(true)
         .truncate(true)
-        .open(file_path.clone())?;
+        .open(file_path)?;
 
     for line in finish_deleted {
         new_file.write_all(&line)?;
