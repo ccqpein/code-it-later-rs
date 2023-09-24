@@ -1,5 +1,4 @@
 #![feature(never_type)]
-#![feature(io_error_other)]
 #![feature(exit_status_error)]
 
 use std::collections::HashSet;
@@ -57,6 +56,11 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<HashSet<String>>, Strin
                         .map_err(|e| e.to_string())?
                 )
             }
+            config::OutputFormat::List => fs_operation::handle_files(conf).for_each(|b| {
+                b.crumbs
+                    .iter()
+                    .for_each(|crumb| println!("{}:{}", b.file_path, crumb.list_format()))
+            }),
         }
         Ok(None)
     }

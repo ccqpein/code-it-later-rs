@@ -134,8 +134,21 @@ impl Crumb {
     pub fn is_ignore(&self) -> bool {
         self.ignore
     }
+
+    pub fn list_format(&self) -> String {
+        let kw = match self.keyword {
+            Some(ref k) => {
+                let mut c = String::from(k);
+                c.push_str(": ");
+                c
+            }
+            None => "".to_string(),
+        };
+        format!("{}: {}{}", self.line_num, kw, self.content)
+    }
 }
 
+/// default format
 impl fmt::Display for Crumb {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let a = match self.keyword {

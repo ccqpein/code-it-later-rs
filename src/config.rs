@@ -96,6 +96,7 @@ pub fn clean_keywords_table() {
 pub(super) enum OutputFormat {
     None,
     Json,
+    List,
 }
 
 impl Default for OutputFormat {
@@ -138,7 +139,8 @@ impl From<&Args> for Config {
         }
 
         let output = match &a.output_format {
-            Some(v) if v == "json" => OutputFormat::Json,
+            Some(v) if v.to_lowercase().as_str() == "json" => OutputFormat::Json,
+            Some(v) if v.to_lowercase().as_str() == "list" => OutputFormat::List,
             _ => OutputFormat::None,
         };
 

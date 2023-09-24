@@ -2,20 +2,19 @@
 
 [![Crates.io](https://img.shields.io/crates/v/code-it-later-rs.svg)](https://crates.io/crates/code-it-later-rs)
 
-- [README](#readme)
-  - [Summary](#summary)
-  - [Install](#install)
-  - [Features](#features)
-  - [Usage](#usage)
-    - [Mulit-line](#mulit-line)
-    - [Filter keyword](#filter-keyword)
-    - [Ignore with keyword](#ignore-with-keyword)
-    - [Excluding some folder](#excluding-some-folder)
-    - [Expand json file](#expand-json-file)
-    - [Local arguments](#local-arguments)
-    - [Clean the crumbs](#clean-the-crumbs)
-    - [Run format after clean the crumbs](#run-format-after-clean-the-crumbs)
-    - [Output to different format of files](#output-to-different-format-of-files)
+- [Summary](#summary)
+- [Install](#install)
+- [Features](#features)
+- [Usage](#usage)
+  - [Mulit-line](#mulit-line)
+  - [Filter keyword](#filter-keyword)
+  - [Ignore with keyword](#ignore-with-keyword)
+  - [Excluding some folder](#excluding-some-folder)
+  - [Expand json file](#expand-json-file)
+  - [Local arguments](#local-arguments)
+  - [Clean the crumbs](#clean-the-crumbs)
+  - [Run format after clean the crumbs](#run-format-after-clean-the-crumbs)
+  - [Output to different format of files](#output-to-different-format-of-files)
 
 **Other Versions (have some features different):**
 

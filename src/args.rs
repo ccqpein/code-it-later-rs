@@ -39,7 +39,7 @@ pub struct Args {
     #[arg(long = "fmt")]
     pub(crate) fmt_command: Option<String>,
 
-    /// output format: json
+    /// output format: json, list
     #[arg(short = 'O', long = "output-format")]
     pub(crate) output_format: Option<String>,
 
