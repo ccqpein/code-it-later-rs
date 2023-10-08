@@ -27,25 +27,29 @@ pub struct Args {
     #[arg(short, long)]
     pub(crate) jsonx: Option<String>,
 
-    /// files/dirs input directly
+    /// Files/Dirs input directly
     #[arg(value_name = "files/dirs", default_value = ".")]
     pub(crate) targets: Vec<String>,
 
-    /// delete the crumbs
+    /// Delete the crumbs
     #[arg(short = 'D', long = "del")]
     pub(crate) delete: bool,
 
-    /// format command after delete crumbs
+    /// Format command after delete crumbs
     #[arg(long = "fmt")]
     pub(crate) fmt_command: Option<String>,
 
-    /// output format: json, list
+    /// Output format: json, list
     #[arg(short = 'O', long = "output-format")]
     pub(crate) output_format: Option<String>,
 
-    /// show all ignored crumbs
+    /// Show all ignored crumbs
     #[arg(long = "show-ignored", default_value = "false")]
-    pub(crate) show_ignore: Option<bool>,
+    pub(crate) show_ignore: bool,
+
+    /// Config file location, default value it "."
+    #[arg(short = 'C', long = "config", default_value = ".")]
+    pub(crate) config_location: String,
 }
 
 impl Args {
@@ -84,13 +88,15 @@ impl Args {
             self.output_format = other.output_format
         }
 
-        if other.show_ignore.is_some() {
-            self.show_ignore = other.show_ignore
-        }
+        self.show_ignore = other.show_ignore
     }
 
     pub fn fmt_command(&self) -> Option<&String> {
         self.fmt_command.as_ref()
+    }
+
+    pub fn config_location(&self) -> String {
+        self.config_location.to_string()
     }
 }
 
@@ -141,8 +147,8 @@ fn read_config_raw_content<R: BufRead>(content: R) -> Vec<String> {
     a
 }
 
-pub fn parse_from_current_path_config() -> Option<Args> {
-    match File::open(".codeitlater") {
+pub fn parse_from_current_path_config(config_folder: String) -> Option<Args> {
+    match File::open(config_folder + "/.codeitlater") {
         Ok(f) => Some(Args::parse_from(read_config_raw_content(BufReader::new(f)))),
         Err(_e) => {
             //println!("{}", _e.to_string());

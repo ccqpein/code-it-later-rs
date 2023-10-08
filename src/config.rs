@@ -151,7 +151,7 @@ impl From<&Args> for Config {
 
             delete: a.delete,
             output,
-            show_ignored: a.show_ignore.unwrap_or(false),
+            show_ignored: a.show_ignore,
         }
     }
 }

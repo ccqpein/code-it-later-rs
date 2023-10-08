@@ -14,7 +14,7 @@ fn main() -> Result<(), String> {
     #[cfg(debug_assertions)]
     dbg!(&commandline_args);
 
-    let args = match parse_from_current_path_config() {
+    let args = match parse_from_current_path_config(commandline_args.config_location()) {
         // if have local config
         Some(mut local_conf) => {
             local_conf.cover(commandline_args); // local union with commond line input
