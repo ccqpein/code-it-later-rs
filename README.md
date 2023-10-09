@@ -226,6 +226,7 @@ As all other options, you can add it inside the local `{$PWD}/.codeitlater`.
 Support format:
 
 + json
++ list
 
 Example:
 
