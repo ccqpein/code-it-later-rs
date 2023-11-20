@@ -30,6 +30,10 @@ Make flags in source code where may have problems or can be optimized. codeitlat
 
 `cargo install code-it-later-rs`
 
+### Installing the Emacs Interface Mode ###
+
+I developed the [helm-code-it-later](https://github.com/ccqpein/helm-code-it-later), which serves as an interface mode for my Emacs.
+
 ## Features ##
 
 * get comments in source code
