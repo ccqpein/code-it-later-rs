@@ -196,18 +196,19 @@ fn bake_bread(file: &File, kwreg: &Option<Regex>, conf: &Config) -> Result<Optio
     let mut head: Option<Crumb> = None; // for tail support
 
     // closure for keywords feature
-    let mut keyword_checker_and_push = |mut cb: Crumb| {
-        if kwreg.is_some() {
-            // filter_keywords will update keyword even the crumb is ignored
-            if cb.filter_keywords(kwreg.as_ref().unwrap()) {
-                result.push(cb)
+    let mut keyword_checker_and_push =
+        |mut cb: Crumb| {
+            if kwreg.is_some() {
+                // filter_keywords will update keyword even the crumb is ignored
+                if cb.filter_keywords(kwreg.as_ref().unwrap()) {
+                    result.push(cb)
+                }
+            } else {
+                if !cb.is_ignore() || conf.show_ignored {
+                    result.push(cb)
+                }
             }
-        } else {
-            if !cb.is_ignore() || conf.show_ignored {
-                result.push(cb)
-            }
-        }
-    };
+        };
 
     loop {
         line_num += 1;

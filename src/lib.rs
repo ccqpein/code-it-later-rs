@@ -36,7 +36,9 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<HashSet<String>>, Strin
                     }
                     "n" => (), // do nothing
                     "s" => continue,
-                    "i" => files_changed = Some(prompt_bread(breads.into_iter(), &mut rl)?),
+                    "i" => {
+                        files_changed = Some(prompt_bread(breads.into_iter(), &mut rl, "delete")?)
+                    }
                     _ => return Err("I don't understand, please give y/n/s/i".to_string()),
                 },
                 Err(e) => return Err(format!("error in prompt readline {}", e.to_string())),
@@ -44,6 +46,8 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<HashSet<String>>, Strin
             break;
         }
         Ok(files_changed)
+        //:= clean should change crumb back to normal comment
+        //}else if conf.clean {}
     } else {
         match conf.output {
             config::OutputFormat::None => {
@@ -69,6 +73,7 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<HashSet<String>>, Strin
 fn prompt_bread(
     breads: impl Iterator<Item = Bread>,
     rl: &mut rustyline::Editor<()>,
+    op: &str,
 ) -> Result<HashSet<String>, String> {
     let mut files_changed = HashSet::new();
     for b in breads {
@@ -76,23 +81,24 @@ fn prompt_bread(
             // incase need show again
             println!("{}", b);
             match rl.readline(&format!(
-                "Are you sure you want to delete this bread {}? (y/n/s/i): ",
-                b.file_path
+                "Are you sure you want to {} this bread {}? (y/n/s/i): ",
+                op, b.file_path
             )) {
                 Ok(s) => match s.as_str() {
                     "y" => {
                         files_changed
                             .insert(fs_operation::clean_the_crumbs(b).map_err(|e| e.to_string())?);
+                        //:= need to add clean rather than delete
                     }
                     "n" => {}
                     "s" => {
                         continue;
                     }
                     "i" => {
-                        let go_to_delete = prompt_crumbs(b.crumbs.iter(), rl)?;
-                        if go_to_delete.len() != 0 {
+                        let go_to_handle = prompt_crumbs(b.crumbs.iter(), rl, op)?;
+                        if go_to_handle.len() != 0 {
                             files_changed.insert(
-                                fs_operation::clean_the_crumbs_on_special_index(b, go_to_delete)
+                                fs_operation::clean_the_crumbs_on_special_index(b, go_to_handle) //:= need to add clean rather than delete
                                     .map_err(|e| e.to_string())?,
                             );
                         }
@@ -112,15 +118,19 @@ fn prompt_bread(
 fn prompt_crumbs<'a>(
     crumbs: impl Iterator<Item = &'a Crumb>,
     rl: &mut rustyline::Editor<()>,
+    op: &str,
 ) -> Result<HashSet<usize>, String> {
-    let mut going_to_delete_crumbs_indexes = HashSet::new();
+    let mut going_to_handle_crumbs_indexes = HashSet::new();
     for (ind, c) in crumbs.enumerate() {
         loop {
             println!("{}", c);
-            match rl.readline("Are you sure you want to delete this crumb? (y/n/s): ") {
+            match rl.readline(&format!(
+                "Are you sure you want to {} this crumb? (y/n/s): ",
+                op
+            )) {
                 Ok(s) => match s.as_str() {
                     "y" => {
-                        going_to_delete_crumbs_indexes.insert(ind);
+                        going_to_handle_crumbs_indexes.insert(ind);
                     }
                     "n" => {}
                     "s" => {
@@ -135,5 +145,5 @@ fn prompt_crumbs<'a>(
             break;
         }
     }
-    Ok(going_to_delete_crumbs_indexes)
+    Ok(going_to_handle_crumbs_indexes)
 }
