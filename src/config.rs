@@ -115,6 +115,9 @@ pub struct Config {
     /// if delete
     pub(super) delete: bool,
 
+    /// if restore
+    pub(super) restore: bool,
+
     /// output format
     pub(super) output: OutputFormat,
 
@@ -150,6 +153,10 @@ impl From<&Args> for Config {
             files: a.targets.clone(),
 
             delete: a.delete,
+            // delete and restore cannot be true at the same time
+            // and delete has higher priority
+            restore: if a.delete { false } else { a.restore },
+
             output,
             show_ignored: a.show_ignore,
         }
@@ -262,5 +269,21 @@ mod tests {
         .unwrap();
         assert!(re.captures("err := test").is_none());
         assert!(re.captures("err // := test").is_some());
+    }
+
+    #[test]
+    fn test_restore_overwrited_by_delete() {
+        let mut arg: Args = Default::default();
+        arg.delete = true;
+        arg.restore = true;
+        let conf = Config::from(&arg);
+        assert!(conf.delete);
+        assert!(!conf.restore);
+
+        arg.delete = false;
+        arg.restore = true;
+        let conf = Config::from(&arg);
+        assert!(!conf.delete);
+        assert!(conf.restore);
     }
 }

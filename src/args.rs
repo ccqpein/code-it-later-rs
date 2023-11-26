@@ -35,6 +35,10 @@ pub struct Args {
     #[arg(short = 'D', long = "del")]
     pub(crate) delete: bool,
 
+    /// Restore the crumbs back to normal comment
+    #[arg(short = 'R', long = "restore")]
+    pub(crate) restore: bool,
+
     /// Format command after delete crumbs
     #[arg(long = "fmt")]
     pub(crate) fmt_command: Option<String>,
@@ -78,6 +82,10 @@ impl Args {
 
         if other.delete {
             self.delete = other.delete
+        }
+
+        if other.restore {
+            self.restore = other.restore
         }
 
         if other.fmt_command.is_some() {
@@ -203,6 +211,27 @@ mod tests {
         );
         assert_eq!(args.delete, true);
         assert_eq!(args.ignore_dirs, vec!["dd", "ff"]);
+
+        let args = vec![
+            "codeitlater",
+            "-x",
+            "dd",
+            "-x",
+            "ff",
+            "-D",
+            "a",
+            "b",
+            "c",
+            "-R",
+        ];
+        let args = Args::parse_from(args);
+        assert_eq!(
+            args.targets,
+            vec!["a".to_string(), "b".to_string(), "c".to_string()]
+        );
+        assert_eq!(args.delete, true);
+        assert_eq!(args.ignore_dirs, vec!["dd", "ff"]);
+        assert_eq!(args.restore, true);
     }
 
     #[test]
