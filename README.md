@@ -4,6 +4,7 @@
 
 - [Summary](#summary)
 - [Install](#install)
+  - [Installing the Emacs Interface Mode](#installing-the-emacs-interface-mode)
 - [Features](#features)
 - [Usage](#usage)
   - [Mulit-line](#mulit-line)

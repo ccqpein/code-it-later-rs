@@ -25,7 +25,7 @@ fn test_clean_the_crumbs() -> Result<()> {
     let conf = config::Config::from(&args);
 
     let mut bread = fs_operation::handle_files(conf);
-    fs_operation::clean_the_crumbs(bread.next().unwrap())?;
+    fs_operation::delete_the_crumbs(bread.next().unwrap())?;
     assert!(same_file(
         "tests/testcases/clean_case_0.rs.expect",
         "tests/testcases/clean_case_0.rs",

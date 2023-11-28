@@ -27,7 +27,7 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<HashSet<String>>, Strin
                         let mut cache = HashSet::new();
                         for b in breads {
                             cache.insert(
-                                fs_operation::clean_the_crumbs(b).map_err(|e| e.to_string())?,
+                                fs_operation::delete_the_crumbs(b).map_err(|e| e.to_string())?,
                             );
                         }
                         if !cache.is_empty() {
@@ -87,7 +87,7 @@ fn prompt_bread(
                 Ok(s) => match s.as_str() {
                     "y" => {
                         files_changed
-                            .insert(fs_operation::clean_the_crumbs(b).map_err(|e| e.to_string())?);
+                            .insert(fs_operation::delete_the_crumbs(b).map_err(|e| e.to_string())?);
                         //:= need to add clean rather than delete
                     }
                     "n" => {}
@@ -98,7 +98,7 @@ fn prompt_bread(
                         let go_to_handle = prompt_crumbs(b.crumbs.iter(), rl, op)?;
                         if go_to_handle.len() != 0 {
                             files_changed.insert(
-                                fs_operation::clean_the_crumbs_on_special_index(b, go_to_handle) //:= need to add clean rather than delete
+                                fs_operation::delete_the_crumbs_on_special_index(b, go_to_handle) //:= need to add clean rather than delete
                                     .map_err(|e| e.to_string())?,
                             );
                         }

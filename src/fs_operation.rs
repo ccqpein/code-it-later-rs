@@ -173,7 +173,7 @@ fn op_file(file: File, kwreg: &Option<Regex>, conf: Arc<RwLock<Config>>) -> Resu
     } else {
         match breads {
             Some(bb) => {
-                clean_the_crumbs(bb)?;
+                delete_the_crumbs(bb)?;
                 Ok(None)
             }
             None => Ok(None),
@@ -264,8 +264,8 @@ fn bake_bread(file: &File, kwreg: &Option<Regex>, conf: &Config) -> Result<Optio
     }
 }
 
-/// clean crumbs and re-write the file
-pub fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<String> {
+/// delete crumbs and re-write the file
+pub fn delete_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<String> {
     let all_delete_line_postion_pairs = crumbs
         .iter()
         .map(|crumb| crumb.all_lines_num_postion_pair())
@@ -277,8 +277,8 @@ pub fn clean_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<String> {
     Ok(file_path)
 }
 
-/// clean crumbs by special indexes
-pub fn clean_the_crumbs_on_special_index(
+/// delete crumbs by special indexes
+pub fn delete_the_crumbs_on_special_index(
     Bread { file_path, crumbs }: Bread,
     indexes: HashSet<usize>,
 ) -> Result<String> {
@@ -345,6 +345,21 @@ fn delete_nth_lines(
     }
 
     Ok(result)
+}
+
+//:= next
+/// restore the crumb to normal comment
+pub fn restore_the_crumb(Bread { file_path, crumbs }: Bread) -> Result<String> {
+    todo!()
+}
+
+//:= next
+/// restore the crumb to normal comment by special indexes
+pub fn restore_the_crumbs_on_special_index(
+    Bread { file_path, crumbs }: Bread,
+    indexes: HashSet<usize>,
+) -> Result<String> {
+    todo!()
 }
 
 /// run format command with filepath input
