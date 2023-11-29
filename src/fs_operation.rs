@@ -149,9 +149,9 @@ fn filter_line(line: &str, line_num: usize, re: &Regex) -> Option<Crumb> {
             let position = mat.start();
             let content = re.captures(line).unwrap()[2].to_string();
             if content.starts_with('!') {
-                Some(Crumb::new(line_num, position, None, content).add_ignore_flag())
+                Some(Crumb::new(line_num, position, content).add_ignore_flag())
             } else {
-                Some(Crumb::new(line_num, position, None, content))
+                Some(Crumb::new(line_num, position, content))
             }
         }
         None => None,

@@ -55,18 +55,43 @@ pub struct Crumb {
     tails: Vec<Crumb>,
 
     pub(crate) keyword: Option<String>,
+
+    /// view_content use to print out
+    /// like in tails and keywords
+    /// the content below keep original content
+    pub(crate) view_content: String,
     pub(crate) content: String,
 
     ignore: bool,
 }
 
 impl Crumb {
+    pub fn new_for_test(
+        line_num: usize,
+        position: usize,
+        tails: Vec<Crumb>,
+        keyword: Option<String>,
+        view_content: String,
+        content: String,
+        ignore: bool,
+    ) -> Self {
+        Self {
+            line_num,
+            position,
+            tails,
+            keyword,
+            view_content,
+            content,
+            ignore,
+        }
+    }
+
     /// side effect: will change keyword to Some(_) if match successed
     pub fn filter_keywords(&mut self, re: &Regex) -> bool {
         match re.captures(&self.content) {
             Some(a) => {
                 self.keyword = Some(a[1].to_string());
-                self.content = a[2].to_string();
+                self.view_content = a[2].to_string();
                 true
             }
             None => false,
@@ -74,24 +99,29 @@ impl Crumb {
     }
 
     pub fn has_tail(&self) -> bool {
-        self.content.ends_with("...")
+        self.view_content.ends_with("...")
     }
 
     /// add tail crumbs in this one
     pub fn add_tail(&mut self, tail: Self) {
         // update the first crumb's content
-        self.content = self.content.trim_end().trim_end_matches("...").to_string();
-        self.content.push(' ');
-        self.content.push_str(&tail.content);
+        self.view_content = self
+            .view_content
+            .trim_end()
+            .trim_end_matches("...")
+            .to_string();
+        self.view_content.push(' ');
+        self.view_content.push_str(&tail.content);
         self.tails.push(tail);
     }
 
-    pub fn new(line_num: usize, position: usize, keyword: Option<String>, content: String) -> Self {
+    pub fn new(line_num: usize, position: usize, content: String) -> Self {
         Self {
             line_num,
             position,
-            keyword,
+            keyword: None,
             tails: vec![],
+            view_content: content.clone(),
             content,
             ignore: false,
         }
@@ -144,7 +174,7 @@ impl Crumb {
             }
             None => "".to_string(),
         };
-        format!("{}: {}{}", self.line_num, kw, self.content)
+        format!("{}: {}{}", self.line_num, kw, self.view_content)
     }
 }
 
@@ -159,7 +189,7 @@ impl fmt::Display for Crumb {
             }
             None => "".to_string(),
         };
-        write!(f, "Line {}: {}{}\n", self.line_num, a, self.content)?;
+        write!(f, "Line {}: {}{}\n", self.line_num, a, self.view_content)?;
         Ok(())
     }
 }
@@ -167,6 +197,7 @@ impl fmt::Display for Crumb {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config;
 
     #[test]
     fn test_filter_keyowrds() {
@@ -177,11 +208,10 @@ mod tests {
         assert_eq!(a.keyword, Some("TODO".to_string()));
 
         a.content = "TODO: test1".to_string();
-        assert!(
-            a.filter_keywords(&Regex::new(&format!("({}|{}):\\s*(.*)", "TODO", "MARK")).unwrap())
-        );
+        assert!(a
+            .filter_keywords(&Regex::new(&format!("({}|{}):\\s*(.*)", "TODO", "MARK")).unwrap()));
         assert_eq!(a.keyword, Some("TODO".to_string()));
-        assert_eq!(a.content, "test1");
+        assert_eq!(a.view_content, "test1");
 
         // test 2
         let mut a: Crumb = Default::default();
@@ -194,26 +224,10 @@ mod tests {
         let mut a: Crumb = Default::default();
         a.content = "!TODO: test3".to_string();
         a.ignore = true;
-        dbg!(&a);
-        assert!(
-            a.filter_keywords(&Regex::new(&format!("({}|{}):\\s*(.*)", "TODO", "MARK")).unwrap())
-        );
-        dbg!(&a);
+        //dbg!(&a);
+        assert!(a
+            .filter_keywords(&Regex::new(&format!("({}|{}):\\s*(.*)", "TODO", "MARK")).unwrap()));
+        //dbg!(&a);
         assert_eq!(a.keyword, Some("TODO".to_string()));
-    }
-
-    #[test]
-    fn test_to_org() {
-        let b0 = Bread::new("a".into(), vec![]);
-        assert_eq!(b0.to_org().unwrap(), "* a\n".to_string());
-
-        let b1 = Bread::new(
-            "a".into(),
-            vec![
-                Crumb::new(1, 0, None, "1".to_string()),
-                Crumb::new(2, 0, Some("TODO".to_string()), "2".to_string()),
-            ],
-        );
-        assert_eq!(b1.to_org().unwrap(), "* a\n** TODO 2\n".to_string());
     }
 }

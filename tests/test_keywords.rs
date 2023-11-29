@@ -18,16 +18,21 @@ fn test_keywords() {
 
     let conf = config::Config::from(&args);
     //dbg!(&conf);
+    let c = Crumb::new_for_test(
+        1,
+        0,
+        vec![],
+        Some("TODO".to_string()),
+        "this is TODO".to_string(),
+        "TODO: this is TODO".to_string(),
+        false,
+    );
+
     assert_eq!(
         fs_operation::handle_files(conf).collect::<Vec<_>>(),
         vec![Bread::new(
             "./tests/testcases/keywords.lisp".to_string(),
-            vec![Crumb::new(
-                1,
-                0,
-                Some("TODO".to_string()),
-                "this is TODO".to_string()
-            ),]
+            vec![c,]
         )]
     );
 }
@@ -45,18 +50,19 @@ fn test_ignore_keyword_file() {
 
     let conf = config::Config::from(&args);
 
+    let c = Crumb::new_for_test(
+        6,
+        0,
+        vec![],
+        Some("TODO".to_string()),
+        "this is the ignore line".to_string(),
+        "!TODO: this is the ignore line".to_string(),
+        true,
+    );
+
     assert_eq!(
         fs_operation::handle_files(conf).collect::<Vec<_>>(),
-        vec![Bread::new(
-            "./tests/testcases/test.rs".to_string(),
-            vec![Crumb::new(
-                6,
-                0,
-                Some("TODO".to_string()),
-                "this is the ignore line".to_string()
-            )
-            .add_ignore_flag()]
-        )]
+        vec![Bread::new("./tests/testcases/test.rs".to_string(), vec![c])]
     );
 
     let args = Args::parse_from(vec![
@@ -75,14 +81,24 @@ fn test_ignore_keyword_file() {
         vec![Bread::new(
             "./tests/testcases/keywords.lisp".to_string(),
             vec![
-                Crumb::new(3, 0, Some("MARK".to_string()), "this is MARK".to_string()),
-                Crumb::new(
+                Crumb::new_for_test(
+                    3,
+                    0,
+                    vec![],
+                    Some("MARK".to_string()),
+                    "this is MARK".to_string(),
+                    "MARK: this is MARK".to_string(),
+                    false
+                ),
+                Crumb::new_for_test(
                     4,
                     0,
+                    vec![],
                     Some("MARK".to_string()),
-                    "this is ignored MARK".to_string()
-                )
-                .add_ignore_flag()
+                    "this is ignored MARK".to_string(),
+                    "!MARK: this is ignored MARK".to_string(),
+                    true
+                ),
             ]
         )]
     );
