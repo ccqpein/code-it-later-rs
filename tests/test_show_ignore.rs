@@ -23,9 +23,15 @@ fn test_show_ignore() {
         vec![Bread::new(
             "./tests/testcases/test.rs".to_string(),
             vec![
-                Crumb::new(1, 0, "this is rust".to_string()),
-                Crumb::new(4, 0, "this is also rust".to_string()),
-                Crumb::new(6, 0, "!TODO: this is the ignore line".to_string()).add_ignore_flag()
+                Crumb::new(1, 0, "this is rust".to_string(), "/*".to_string()),
+                Crumb::new(4, 0, "this is also rust".to_string(), "///".to_string()),
+                Crumb::new(
+                    6,
+                    0,
+                    "!TODO: this is the ignore line".to_string(),
+                    "//".to_string()
+                )
+                .add_ignore_flag()
             ]
         )]
     );

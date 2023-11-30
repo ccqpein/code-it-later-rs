@@ -147,11 +147,16 @@ fn filter_line(line: &str, line_num: usize, re: &Regex) -> Option<Crumb> {
     match re.find(line) {
         Some(mat) => {
             let position = mat.start();
-            let content = re.captures(line).unwrap()[2].to_string();
+            let cap = re.captures(line).unwrap();
+            let content = cap[2].to_string();
+            let comment_symbol_header = cap[1].to_string();
             if content.starts_with('!') {
-                Some(Crumb::new(line_num, position, content).add_ignore_flag())
+                Some(
+                    Crumb::new(line_num, position, content, comment_symbol_header)
+                        .add_ignore_flag(),
+                )
             } else {
-                Some(Crumb::new(line_num, position, content))
+                Some(Crumb::new(line_num, position, content, comment_symbol_header))
             }
         }
         None => None,

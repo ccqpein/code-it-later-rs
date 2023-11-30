@@ -60,7 +60,14 @@ pub struct Crumb {
     /// like in tails and keywords
     /// the content below keep original content
     pub(crate) view_content: String,
+
+    /// the content including original content after :=
+    /// maybe different than view_content
     pub(crate) content: String,
+
+    /// record the crumb header for restore
+    /// like in lisp `;;;:= here`, `;;;` should be header
+    comment_symbol_header: String,
 
     ignore: bool,
 }
@@ -73,6 +80,7 @@ impl Crumb {
         keyword: Option<String>,
         view_content: String,
         content: String,
+        comment_symbol_header: String,
         ignore: bool,
     ) -> Self {
         Self {
@@ -82,6 +90,7 @@ impl Crumb {
             keyword,
             view_content,
             content,
+            comment_symbol_header,
             ignore,
         }
     }
@@ -115,7 +124,12 @@ impl Crumb {
         self.tails.push(tail);
     }
 
-    pub fn new(line_num: usize, position: usize, content: String) -> Self {
+    pub fn new(
+        line_num: usize,
+        position: usize,
+        content: String,
+        comment_symbol_header: String,
+    ) -> Self {
         Self {
             line_num,
             position,
@@ -123,6 +137,7 @@ impl Crumb {
             tails: vec![],
             view_content: content.clone(),
             content,
+            comment_symbol_header,
             ignore: false,
         }
     }

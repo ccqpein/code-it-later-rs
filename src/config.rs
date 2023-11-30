@@ -253,6 +253,7 @@ mod tests {
 
         let cap = re.captures("Aabbcc ;;;:= test").unwrap();
         assert_eq!(&cap[2], "test");
+        assert_eq!(&cap[1], ";;;");
 
         assert!(re.captures("Aabbcc #:= test").is_none());
 
@@ -269,6 +270,7 @@ mod tests {
         .unwrap();
         assert!(re.captures("err := test").is_none());
         assert!(re.captures("err // := test").is_some());
+        assert_eq!(&re.captures("err // := test").unwrap()[1], "// ");
     }
 
     #[test]

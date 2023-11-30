@@ -18,15 +18,17 @@ fn test_keywords() {
 
     let conf = config::Config::from(&args);
     //dbg!(&conf);
-    let c = Crumb::new_for_test(
-        1,
-        0,
-        vec![],
-        Some("TODO".to_string()),
-        "this is TODO".to_string(),
-        "TODO: this is TODO".to_string(),
-        false,
-    );
+    let c =
+        Crumb::new_for_test(
+            1,
+            0,
+            vec![],
+            Some("TODO".to_string()),
+            "this is TODO".to_string(),
+            "TODO: this is TODO".to_string(),
+            ";;;;;;;;".to_string(),
+            false,
+        );
 
     assert_eq!(
         fs_operation::handle_files(conf).collect::<Vec<_>>(),
@@ -50,15 +52,17 @@ fn test_ignore_keyword_file() {
 
     let conf = config::Config::from(&args);
 
-    let c = Crumb::new_for_test(
-        6,
-        0,
-        vec![],
-        Some("TODO".to_string()),
-        "this is the ignore line".to_string(),
-        "!TODO: this is the ignore line".to_string(),
-        true,
-    );
+    let c =
+        Crumb::new_for_test(
+            6,
+            0,
+            vec![],
+            Some("TODO".to_string()),
+            "this is the ignore line".to_string(),
+            "!TODO: this is the ignore line".to_string(),
+            "//".to_string(),
+            true,
+        );
 
     assert_eq!(
         fs_operation::handle_files(conf).collect::<Vec<_>>(),
@@ -88,6 +92,7 @@ fn test_ignore_keyword_file() {
                     Some("MARK".to_string()),
                     "this is MARK".to_string(),
                     "MARK: this is MARK".to_string(),
+                    ";;".to_string(),
                     false
                 ),
                 Crumb::new_for_test(
@@ -97,6 +102,7 @@ fn test_ignore_keyword_file() {
                     Some("MARK".to_string()),
                     "this is ignored MARK".to_string(),
                     "!MARK: this is ignored MARK".to_string(),
+                    ";;".to_string(),
                     true
                 ),
             ]
