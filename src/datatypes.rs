@@ -170,6 +170,31 @@ impl Crumb {
         a
     }
 
+    /// return this crumb line numbers, the position, the header and content of lines pairs
+    pub fn all_lines_num_postion_and_header_content(&self) -> Vec<(usize, usize, &str, &str)> {
+        let mut a = vec![(
+            self.line_num,
+            self.position,
+            self.comment_symbol_header.as_str(),
+            self.content.as_str(),
+        )];
+        a.append(
+            &mut self
+                .tails
+                .iter()
+                .map(|t| {
+                    (
+                        t.line_num,
+                        t.position,
+                        self.comment_symbol_header.as_str(),
+                        t.content.as_str(),
+                    )
+                })
+                .collect(),
+        );
+        a
+    }
+
     // add the ignore flag to this crumb
     pub fn add_ignore_flag(mut self) -> Self {
         self.ignore = true;
@@ -212,7 +237,6 @@ impl fmt::Display for Crumb {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config;
 
     #[test]
     fn test_filter_keyowrds() {

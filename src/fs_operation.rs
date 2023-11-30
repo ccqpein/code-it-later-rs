@@ -352,19 +352,78 @@ fn delete_nth_lines(
     Ok(result)
 }
 
-//:= next
-/// restore the crumb to normal comment
+/// restore the bread's crumb to normal comment
 pub fn restore_the_crumb(Bread { file_path, crumbs }: Bread) -> Result<String> {
-    todo!()
+    let all_restore_lines = crumbs
+        .iter()
+        .map(|c| c.all_lines_num_postion_and_header_content())
+        .flatten();
+
+    restore_lines_on(&file_path, all_restore_lines)?;
+
+    println!("restored the crumbs in {}", file_path);
+    Ok(file_path)
 }
 
-//:= next
-/// restore the crumb to normal comment by special indexes
-pub fn restore_the_crumbs_on_special_index(
+/// restore the bread's crumb by special indexes
+pub fn restore_the_crumb_on_special_index(
     Bread { file_path, crumbs }: Bread,
     indexes: HashSet<usize>,
 ) -> Result<String> {
-    todo!()
+    let mut all_restore_lines = Vec::with_capacity(indexes.len());
+    for ind in &indexes {
+        match crumbs.get(*ind) {
+            Some(c) => all_restore_lines.append(&mut c.all_lines_num_postion_and_header_content()),
+            None => return Err(io::Error::other("cannot find crumb index in bread")),
+        }
+    }
+
+    restore_lines_on(&file_path, all_restore_lines.into_iter())?;
+
+    println!("restored {} crumbs in {}", indexes.len(), file_path);
+    Ok(file_path)
+}
+
+fn restore_lines_on<'a>(
+    file_path: &'a str,
+    all_restore_lines: impl Iterator<Item = (usize, usize, &'a str, &'a str)>,
+) -> Result<()> {
+    let f = fs::File::open(&file_path)?;
+    let reader = BufReader::new(f).lines();
+
+    let mut table: HashMap<usize, (usize, &str, &str)> =
+        HashMap::with_capacity(all_restore_lines.size_hint().1.unwrap_or(0));
+
+    all_restore_lines.for_each(|(line_num, pos, header, content)| {
+        table.insert(line_num, (pos, header, content));
+    });
+
+    let mut new_file = Vec::with_capacity(reader.size_hint().1.unwrap_or(0));
+    for (line_num, ll) in reader.enumerate() {
+        if let Some((pos, header, content)) = table.get(&(line_num + 1)) {
+            let mut new_l = ll?;
+            new_l.truncate(*pos);
+            new_l.push_str(*header);
+            new_l.push_str(" ");
+            new_l.push_str(*content);
+
+            new_file.push(new_l.into_bytes())
+        } else {
+            new_file.push(ll?.into_bytes());
+        }
+    }
+
+    let mut file = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(file_path)?;
+
+    for line in new_file {
+        file.write_all(&line)?;
+        file.write_all(b"\n")?
+    }
+
+    Ok(())
 }
 
 /// run format command with filepath input
