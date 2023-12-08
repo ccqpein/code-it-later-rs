@@ -156,7 +156,12 @@ fn filter_line(line: &str, line_num: usize, re: &Regex) -> Option<Crumb> {
                         .add_ignore_flag(),
                 )
             } else {
-                Some(Crumb::new(line_num, position, content, comment_symbol_header))
+                Some(Crumb::new(
+                    line_num,
+                    position,
+                    content,
+                    comment_symbol_header,
+                ))
             }
         }
         None => None,
@@ -201,19 +206,18 @@ fn bake_bread(file: &File, kwreg: &Option<Regex>, conf: &Config) -> Result<Optio
     let mut head: Option<Crumb> = None; // for tail support
 
     // closure for keywords feature
-    let mut keyword_checker_and_push =
-        |mut cb: Crumb| {
-            if kwreg.is_some() {
-                // filter_keywords will update keyword even the crumb is ignored
-                if cb.filter_keywords(kwreg.as_ref().unwrap()) {
-                    result.push(cb)
-                }
-            } else {
-                if !cb.is_ignore() || conf.show_ignored {
-                    result.push(cb)
-                }
+    let mut keyword_checker_and_push = |mut cb: Crumb| {
+        if kwreg.is_some() {
+            // filter_keywords will update keyword even the crumb is ignored
+            if cb.filter_keywords(kwreg.as_ref().unwrap()) {
+                result.push(cb)
             }
-        };
+        } else {
+            if !cb.is_ignore() || conf.show_ignored {
+                result.push(cb)
+            }
+        }
+    };
 
     loop {
         line_num += 1;
@@ -278,7 +282,7 @@ pub fn delete_the_crumbs(Bread { file_path, crumbs }: Bread) -> Result<String> {
 
     delete_lines_on(&file_path, all_delete_line_postion_pairs)?;
 
-    println!("cleaned the crumbs in {}", file_path);
+    println!("deleted the crumbs in {}", file_path);
     Ok(file_path)
 }
 
@@ -297,7 +301,7 @@ pub fn delete_the_crumbs_on_special_index(
 
     delete_lines_on(&file_path, all_delete_lines.into_iter())?;
 
-    println!("cleaned {} crumbs in {}", indexes.len(), file_path);
+    println!("deleted {} crumbs in {}", indexes.len(), file_path);
 
     Ok(file_path)
 }

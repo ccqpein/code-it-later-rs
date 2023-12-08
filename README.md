@@ -13,7 +13,8 @@
   - [Excluding some folder](#excluding-some-folder)
   - [Expand json file](#expand-json-file)
   - [Local arguments](#local-arguments)
-  - [Clean the crumbs](#clean-the-crumbs)
+  - [Delete the crumbs](#delete-the-crumbs)
+  - [Restore the crumbs](#restore-the-crumbs)
   - [Run format after clean the crumbs](#run-format-after-clean-the-crumbs)
   - [Output to different format of files](#output-to-different-format-of-files)
 
@@ -208,11 +209,25 @@ Check `tests/test.json`, if you run `codeitlater -j ./tests/test.json`, the "rs"
 
 `codeitlater` will look for `{$PWD}/.codeitlater` file to pre-load arguments. If any arguments those been given in command line, also set inside the `.codeitlater` file, will be rewrote by command line arguments (**except ignore dirs (-x)**, ignore dirs configs located inside `.codeitlater` file and given in command line will merge together). 
 
-### Clean the crumbs ###
+### Delete the crumbs ###
 
 `codeitlater -D target` gonna clean all crumbs inside the files in the target folder. Delete will give prompt interaction, which has `y/n/s/i` options. `y` means delete the bread/crumbs it just shows; `n` means ignore this; `s` means `show`, just re-print it again; `i` going to interact mode, show bread one by one or crumb one by one.
 
 You can delete special keywords with `codeitlater -D -k TODO`. Generally, `-D` handle after normal `codeitlater` workflow done.
+
+### Restore the crumbs ###
+
+Like the delete feature prompt, but this feature restore the crumb left inside the code to normal comments.
+
+```golang
+//:= here
+```
+
+will restore to 
+
+```golang
+// here
+```
 
 ### Run format after clean the crumbs ###
 

@@ -46,8 +46,37 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<HashSet<String>>, Strin
             break;
         }
         Ok(files_changed)
-        //:= clean should change crumb back to normal comment
-        //}else if conf.clean {}
+    } else if conf.restore {
+        let mut rl = rustyline::Editor::<()>::new();
+        let breads = fs_operation::handle_files(conf).collect::<Vec<_>>();
+        let mut files_changed = None;
+        loop {
+            breads.iter().for_each(|b| println!("{}", b));
+            match rl.readline("Are you sure you want to restore all crumbs? (y/n/s/i): ") {
+                Ok(s) => match s.as_str() {
+                    "y" => {
+                        let mut cache = HashSet::new();
+                        for b in breads {
+                            cache.insert(
+                                fs_operation::restore_the_crumb(b).map_err(|e| e.to_string())?,
+                            );
+                        }
+                        if !cache.is_empty() {
+                            files_changed = Some(cache)
+                        };
+                    }
+                    "n" => (), // do nothing
+                    "s" => continue,
+                    "i" => {
+                        files_changed = Some(prompt_bread(breads.into_iter(), &mut rl, "restore")?)
+                    }
+                    _ => return Err("I don't understand, please give y/n/s/i".to_string()),
+                },
+                Err(e) => return Err(format!("error in prompt readline {}", e.to_string())),
+            }
+            break;
+        }
+        Ok(files_changed)
     } else {
         match conf.output {
             config::OutputFormat::None => {
@@ -85,11 +114,19 @@ fn prompt_bread(
                 op, b.file_path
             )) {
                 Ok(s) => match s.as_str() {
-                    "y" => {
-                        files_changed
-                            .insert(fs_operation::delete_the_crumbs(b).map_err(|e| e.to_string())?);
-                        //:= need to add clean rather than delete
-                    }
+                    "y" => match op {
+                        "delete" => {
+                            files_changed.insert(
+                                fs_operation::delete_the_crumbs(b).map_err(|e| e.to_string())?,
+                            );
+                        }
+                        "restore" => {
+                            files_changed.insert(
+                                fs_operation::restore_the_crumb(b).map_err(|e| e.to_string())?,
+                            );
+                        }
+                        _ => (),
+                    },
                     "n" => {}
                     "s" => {
                         continue;
@@ -97,10 +134,27 @@ fn prompt_bread(
                     "i" => {
                         let go_to_handle = prompt_crumbs(b.crumbs.iter(), rl, op)?;
                         if go_to_handle.len() != 0 {
-                            files_changed.insert(
-                                fs_operation::delete_the_crumbs_on_special_index(b, go_to_handle) //:= need to add clean rather than delete
-                                    .map_err(|e| e.to_string())?,
-                            );
+                            match op {
+                                "delete" => {
+                                    files_changed.insert(
+                                        fs_operation::delete_the_crumbs_on_special_index(
+                                            b,
+                                            go_to_handle,
+                                        )
+                                        .map_err(|e| e.to_string())?,
+                                    );
+                                }
+                                "restore" => {
+                                    files_changed.insert(
+                                        fs_operation::restore_the_crumb_on_special_index(
+                                            b,
+                                            go_to_handle,
+                                        )
+                                        .map_err(|e| e.to_string())?,
+                                    );
+                                }
+                                _ => (),
+                            }
                         }
                     }
                     _ => {
