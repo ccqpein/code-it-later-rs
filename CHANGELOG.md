@@ -1,3 +1,6 @@
++ v0.8.0
+  + Add the `-R/--restore` restore the crumb to normal comment.
+
 + v0.7.0
   + Add new option `-C/--config` to set the `.codeitlater` location
   
