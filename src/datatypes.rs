@@ -58,7 +58,7 @@ pub struct Crumb {
 
     /// view_content use to print out
     /// like in tails and keywords
-    /// the content below keep original content
+    /// the `content` below keep original content
     pub(crate) view_content: String,
 
     /// the content including original content after :=
@@ -247,8 +247,9 @@ mod tests {
         assert_eq!(a.keyword, Some("TODO".to_string()));
 
         a.content = "TODO: test1".to_string();
-        assert!(a
-            .filter_keywords(&Regex::new(&format!("({}|{}):\\s*(.*)", "TODO", "MARK")).unwrap()));
+        assert!(
+            a.filter_keywords(&Regex::new(&format!("({}|{}):\\s*(.*)", "TODO", "MARK")).unwrap())
+        );
         assert_eq!(a.keyword, Some("TODO".to_string()));
         assert_eq!(a.view_content, "test1");
 
@@ -264,8 +265,9 @@ mod tests {
         a.content = "!TODO: test3".to_string();
         a.ignore = true;
         //dbg!(&a);
-        assert!(a
-            .filter_keywords(&Regex::new(&format!("({}|{}):\\s*(.*)", "TODO", "MARK")).unwrap()));
+        assert!(
+            a.filter_keywords(&Regex::new(&format!("({}|{}):\\s*(.*)", "TODO", "MARK")).unwrap())
+        );
         //dbg!(&a);
         assert_eq!(a.keyword, Some("TODO".to_string()));
     }
