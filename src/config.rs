@@ -1,5 +1,6 @@
 use lazy_static::*;
 use regex::{Regex, RegexBuilder};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::ffi::OsString;
 
@@ -167,6 +168,12 @@ impl From<&Args> for Config {
 mod tests {
     use super::*;
     use regex::Regex;
+
+    #[test]
+    fn test_pair_symbols() {
+        update_table(r##"{"rs":["//","#",["/*", "*/"]]}"##);
+        dbg!(TABLE.lock().unwrap().get("rs").unwrap());
+    }
 
     #[test]
     fn test_update_table() {
