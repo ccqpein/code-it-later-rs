@@ -1,3 +1,6 @@
++ v0.8.1
+  + parallellism threads num from hardcode to static
+
 + v0.8.0
   + Add the `-R/--restore` restore the crumb to normal comment.
 

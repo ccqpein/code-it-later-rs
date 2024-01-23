@@ -6,9 +6,13 @@ use std::collections::{HashMap, HashSet};
 use std::ffi::OsString;
 use std::fs::{self, read_dir, OpenOptions};
 use std::io::{self, prelude::*, BufReader};
+use std::num::NonZeroUsize;
 use std::process::Command;
 use std::sync::{Arc, RwLock};
 use std::{io::Result, path::Path, path::PathBuf, thread};
+
+/// how many thread when it runs
+const THREAD_NUM: Option<NonZeroUsize> = NonZeroUsize::new(4);
 
 /// Vector of all pathbufs
 type Dirs = Vec<PathBuf>;
@@ -460,7 +464,10 @@ pub fn handle_files(conf: Config) -> impl Iterator<Item = Bread> {
     let mut all_files: Vec<File> = files_in_dir_or_file_vec(&conf.files, &conf).unwrap();
 
     // split to groups
-    let threads_num = 24;
+    let threads_num: usize = thread::available_parallelism()
+        .unwrap_or(THREAD_NUM.unwrap())
+        .into();
+
     let len = all_files.len();
     let count = len / threads_num;
     let mut groups: Vec<Vec<File>> = vec![];
@@ -497,4 +504,9 @@ mod tests {
         assert_eq!(fs[0].0, PathBuf::from("./tests/testcases/multilines.rs"),);
         Ok(())
     }
+
+    // #[test]
+    // fn test_available_parallelism_on_my_machine() {
+    //     dbg!(thread::available_parallelism().unwrap());
+    // }
 }
