@@ -34,7 +34,7 @@ Make flags in source code where may have problems or can be optimized. codeitlat
 
 ### Installing the Emacs Interface Mode ###
 
-I developed the [helm-code-it-later](https://github.com/ccqpein/helm-code-it-later), which serves as an interface mode for my Emacs.
+I developed the [code-it-later-mode](https://github.com/ccqpein/code-it-later-mode), which serves as an interface mode for my Emacs.
 
 ## Features ##
 
