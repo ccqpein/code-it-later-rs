@@ -1,3 +1,6 @@
++ v0.8.2
+  + add `asd`/`asdf` comment symbol
+
 + v0.8.1
   + parallellism threads num from hardcode to static
 
