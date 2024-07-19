@@ -171,12 +171,6 @@ mod tests {
     use regex::Regex;
 
     #[test]
-    fn test_pair_symbols() {
-        // update_table(r##"{"rs":["//","#",["/*", "*/"]]}"##);
-        // dbg!(TABLE.lock().unwrap().get("rs").unwrap()); //:= failed
-    }
-
-    #[test]
     fn test_update_table() {
         assert_eq!(
             TABLE.lock().unwrap().get("rs").unwrap(),
