@@ -1,11 +1,10 @@
-use lazy_static::*;
 use regex::{Regex, RegexBuilder};
 use std::collections::HashMap;
 use std::ffi::OsString;
 
 use std::fs::File;
 use std::io::Read;
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 
 use super::args::Args;
 
@@ -25,19 +24,19 @@ const DICT: &'static str = r#"
 }
 "#;
 
-lazy_static! {
-    /// The table including all languages filetype and its comment symbols
-    static ref TABLE: Mutex<HashMap<String, Vec<String>>> =
-        Mutex::new(serde_json::from_str(DICT).unwrap());
+static TABLE: LazyLock<Mutex<HashMap<String, Vec<String>>>> =
+    LazyLock::new(|| Mutex::new(serde_json::from_str(DICT).unwrap()));
 
-    /// Regex table, like "rs" => "(//+):=\s+(.*)"
-    pub static ref REGEX_TABLE: Mutex<HashMap<String, Regex>> = Mutex::new({
+pub static REGEX_TABLE: LazyLock<Mutex<HashMap<String, Regex>>> = LazyLock::new(|| {
+    Mutex::new({
         let a = TABLE.lock().unwrap();
-        a.iter().map(|(k, v)| (k.clone(), Regex::new(&make_regex(v)).unwrap())).collect()
-    });
+        a.iter()
+            .map(|(k, v)| (k.clone(), Regex::new(&make_regex(v)).unwrap()))
+            .collect()
+    })
+});
 
-    pub static ref KEYWORDS_REGEX: Mutex<Option<Regex>> = Mutex::new(None);
-}
+pub static KEYWORDS_REGEX: LazyLock<Mutex<Option<Regex>>> = LazyLock::new(|| Mutex::new(None));
 
 /// Update static table with new raw_json str
 fn update_table(raw_json: &str) {

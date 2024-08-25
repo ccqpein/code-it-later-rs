@@ -1,10 +1,9 @@
 use clap::Parser;
 use code_it_later_rs::{args::*, *};
-use lazy_static::lazy_static;
 use std::fs::{self, copy, remove_file};
 use std::io::{prelude::*, BufReader, Result};
 use std::path::Path;
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 
 fn same_file(file0: impl AsRef<Path>, file1: impl AsRef<Path>) -> Result<bool> {
     let f0 = fs::File::open(&file0)?;
@@ -15,9 +14,7 @@ fn same_file(file0: impl AsRef<Path>, file1: impl AsRef<Path>) -> Result<bool> {
     Ok(reader0.zip(reader1).all(|(a, b)| a.unwrap() == b.unwrap()))
 }
 
-lazy_static! {
-    static ref TEST_CLEAN_LOCK: Mutex<()> = Mutex::new(());
-}
+static TEST_CLEAN_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
 #[test]
 fn test_delete_the_crumbs() -> Result<()> {
