@@ -69,7 +69,11 @@ pub struct Crumb {
     /// like in lisp `;;;:= here`, `;;;` should be header
     comment_symbol_header: String,
 
+    /// ignore this crumb or not
     ignore: bool,
+
+    /// range content
+    pub(crate) range_content: Option<Vec<(usize, String)>>,
 }
 
 impl Crumb {
@@ -92,6 +96,7 @@ impl Crumb {
             content,
             comment_symbol_header,
             ignore,
+            range_content: None,
         }
     }
 
@@ -139,6 +144,7 @@ impl Crumb {
             content,
             comment_symbol_header,
             ignore: false,
+            range_content: None,
         }
     }
 
@@ -215,6 +221,17 @@ impl Crumb {
             None => "".to_string(),
         };
         format!("{}: {}{}", self.line_num, kw, self.view_content)
+    }
+
+    pub fn range_format(&self) -> String {
+        match &self.range_content {
+            Some(content) => content
+                .iter()
+                .map(|(ln, line)| format!("Line {}: {}", ln, line))
+                .collect::<Vec<_>>()
+                .join("\n"),
+            None => String::new(),
+        }
     }
 }
 

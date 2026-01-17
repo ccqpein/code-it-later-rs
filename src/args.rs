@@ -54,6 +54,10 @@ pub struct Args {
     /// Config file location, default value it "."
     #[arg(short = 'C', long = "config", default_value = ".")]
     pub(crate) config_location: String,
+
+    /// Show content around the crumb for giving more context
+    #[arg(short, long, default_value = "0")]
+    pub(crate) range: u32,
 }
 
 impl Args {
@@ -96,7 +100,9 @@ impl Args {
             self.output_format = other.output_format
         }
 
-        self.show_ignore = other.show_ignore
+        self.show_ignore = other.show_ignore;
+
+        self.range = other.range
     }
 
     pub fn fmt_command(&self) -> Option<&String> {

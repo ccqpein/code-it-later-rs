@@ -17,6 +17,7 @@
   - [Restore the crumbs](#restore-the-crumbs)
   - [Run format after clean the crumbs](#run-format-after-clean-the-crumbs)
   - [Output to different format of files](#output-to-different-format-of-files)
+  - [Output the range of context](#output-the-range-of-context)
 
 **Other Versions (have some features different):**
 
@@ -253,3 +254,7 @@ Example:
 ```shell
 codeitlater -O json .
 ```
+
+### Output the range of context
+
+`-r/--range` can output the upper/below lines around the crumb. Making this for giving more context to LLM agent.

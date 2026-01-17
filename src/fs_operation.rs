@@ -4,8 +4,8 @@ use log::debug;
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::ffi::OsString;
-use std::fs::{self, read_dir, OpenOptions};
-use std::io::{self, prelude::*, BufReader};
+use std::fs::{self, OpenOptions, read_dir};
+use std::io::{self, BufReader, prelude::*};
 use std::num::NonZeroUsize;
 use std::process::Command;
 use std::sync::{Arc, RwLock};
@@ -116,7 +116,27 @@ fn file_checker(files: &mut Files, path: &Path, filetypes: &[OsString], filetype
             if filetypes.contains(&t.to_os_string()) {
                 // this file include in filetypes
                 let aa = REGEX_TABLE.lock();
-                if let Some(re) = aa.as_ref().unwrap().get(t.to_str().unwrap()) {
+                match aa.as_ref().unwrap().get(t.to_str().unwrap()) {
+                    Some(re) => {
+                        // and has regex for this type
+                        let re = unsafe {
+                            match (re as *const Regex).clone().as_ref() {
+                                Some(a) => a,
+                                None => return,
+                            }
+                        };
+                        files.push(File(path.to_path_buf(), re))
+                    }
+                    _ => {}
+                }
+            }
+        }
+    } else {
+        if let Some(t) = path.extension() {
+            // file has extension
+            let aa = REGEX_TABLE.lock();
+            match aa.as_ref().unwrap().get(t.to_str().unwrap()) {
+                Some(re) => {
                     // and has regex for this type
                     let re = unsafe {
                         match (re as *const Regex).clone().as_ref() {
@@ -126,21 +146,7 @@ fn file_checker(files: &mut Files, path: &Path, filetypes: &[OsString], filetype
                     };
                     files.push(File(path.to_path_buf(), re))
                 }
-            }
-        }
-    } else {
-        if let Some(t) = path.extension() {
-            // file has extension
-            let aa = REGEX_TABLE.lock();
-            if let Some(re) = aa.as_ref().unwrap().get(t.to_str().unwrap()) {
-                // and has regex for this type
-                let re = unsafe {
-                    match (re as *const Regex).clone().as_ref() {
-                        Some(a) => a,
-                        None => return,
-                    }
-                };
-                files.push(File(path.to_path_buf(), re))
+                _ => {}
             }
         }
     }
@@ -208,6 +214,7 @@ fn bake_bread(file: &File, kwreg: &Option<Regex>, conf: &Config) -> Result<Optio
     let mut buf = buf.as_slice();
     let mut result = vec![];
     let mut head: Option<Crumb> = None; // for tail support
+    let mut shadow_file = vec![]; // the copy of file for later range operation 
 
     // closure for keywords feature
     let mut keyword_checker_and_push = |mut cb: Crumb| {
@@ -267,7 +274,32 @@ fn bake_bread(file: &File, kwreg: &Option<Regex>, conf: &Config) -> Result<Optio
                 }
             },
         }
+
+        if conf.range > 0 {
+            shadow_file.push(ss.clone());
+        }
+
         ss.clear()
+    }
+
+    // if range not equal 0, start to push the context around inside
+    if conf.range > 0 {
+        result.iter_mut().for_each(|crumb| {
+            let ahead_ind = (crumb.line_num - 1).saturating_sub(conf.range as usize);
+            let tail_ind = (crumb.line_num - 1)
+                .saturating_add(conf.range as usize)
+                .min(shadow_file.len());
+            crumb.range_content = Some(
+                (ahead_ind + 1..tail_ind + 1)
+                    .zip(
+                        shadow_file
+                            .get(ahead_ind..tail_ind)
+                            .map(|x| x.to_vec())
+                            .unwrap(),
+                    )
+                    .collect(),
+            );
+        });
     }
 
     if result.len() == 0 {

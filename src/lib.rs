@@ -94,6 +94,24 @@ pub fn prompt(mut conf: config::Config) -> Result<Option<HashSet<String>>, Strin
                     .iter()
                     .for_each(|crumb| println!("{}:{}", b.file_path, crumb.list_format()))
             }),
+            config::OutputFormat::Range => fs_operation::handle_files(conf).for_each(|b| {
+                b.crumbs.iter().for_each(|crumb| {
+                    println!(
+                        r#"File path: {}
+
+The mark:
+{}
+
+Context around:
+{}
+=======================
+"#,
+                        b.file_path,
+                        crumb,
+                        crumb.range_format()
+                    )
+                })
+            }),
         }
         Ok(None)
     }

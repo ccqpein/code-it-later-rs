@@ -98,6 +98,7 @@ pub(super) enum OutputFormat {
     None,
     Json,
     List,
+    Range,
 }
 
 impl Default for OutputFormat {
@@ -124,6 +125,9 @@ pub struct Config {
 
     /// show ignored
     pub(super) show_ignored: bool,
+
+    /// show the range of the content around the crumb
+    pub(super) range: u32,
 }
 
 impl From<&Args> for Config {
@@ -145,6 +149,7 @@ impl From<&Args> for Config {
         let output = match &a.output_format {
             Some(v) if v.to_lowercase().as_str() == "json" => OutputFormat::Json,
             Some(v) if v.to_lowercase().as_str() == "list" => OutputFormat::List,
+            None if a.range > 0 => OutputFormat::Range,
             _ => OutputFormat::None,
         };
 
@@ -160,6 +165,8 @@ impl From<&Args> for Config {
 
             output,
             show_ignored: a.show_ignore,
+
+            range: a.range,
         }
     }
 }
