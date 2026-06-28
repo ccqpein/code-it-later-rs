@@ -1,4 +1,4 @@
-use super::config::{Config, KEYWORDS_REGEX, REGEX_TABLE};
+use super::config::{Config, FALLBACK_REGEX, KEYWORDS_REGEX, REGEX_TABLE};
 use super::datatypes::*;
 use log::debug;
 use regex::Regex;
@@ -44,6 +44,7 @@ fn files_in_dir_or_file_vec(paths_or_files: &[impl AsRef<Path>], conf: &Config) 
                 ele.as_ref(),
                 &conf.filetypes,
                 conf.filetypes.len(),
+                true,
             )
         }
     }
@@ -100,54 +101,91 @@ fn files_and_dirs_in_path(p: impl AsRef<Path>, conf: &Config) -> Result<(Files, 
                 d.push(path)
             }
         } else {
-            file_checker(&mut f, &path, &filetypes, filetypes_count)
+            file_checker(&mut f, &path, &filetypes, filetypes_count, false)
         }
     }
     Ok((f, d))
 }
 
 /// if file path pass check, add it to files
-fn file_checker(files: &mut Files, path: &Path, filetypes: &[OsString], filetypes_count: usize) {
+fn file_checker(
+    files: &mut Files,
+    path: &Path,
+    filetypes: &[OsString],
+    filetypes_count: usize,
+    is_explicit: bool,
+) {
+    let ext = path.extension();
+    let file_name = path.file_name();
+    let ext_str = ext.and_then(|t| t.to_str());
+    let file_name_str = file_name.and_then(|f| f.to_str()).map(|s| s.to_lowercase());
+
     // check filetypes
     if filetypes_count != 0 {
         // special filetypes
-        if let Some(t) = path.extension() {
+        if let Some(t) = ext {
             // file has extension
             if filetypes.contains(&t.to_os_string()) {
                 // this file include in filetypes
                 let aa = REGEX_TABLE.lock();
-                match aa.as_ref().unwrap().get(t.to_str().unwrap()) {
-                    Some(re) => {
-                        // and has regex for this type
-                        let re = unsafe {
-                            match (re as *const Regex).clone().as_ref() {
-                                Some(a) => a,
-                                None => return,
-                            }
-                        };
-                        files.push(File(path.to_path_buf(), re))
+                if let Some(t_str) = ext_str {
+                    match aa.as_ref().unwrap().get(t_str) {
+                        Some(re) => {
+                            // and has regex for this type
+                            let re = unsafe {
+                                match (re as *const Regex).clone().as_ref() {
+                                    Some(a) => a,
+                                    None => return,
+                                }
+                            };
+                            files.push(File(path.to_path_buf(), re))
+                        }
+                        _ => {}
                     }
-                    _ => {}
                 }
             }
         }
     } else {
-        if let Some(t) = path.extension() {
-            // file has extension
-            let aa = REGEX_TABLE.lock();
-            match aa.as_ref().unwrap().get(t.to_str().unwrap()) {
-                Some(re) => {
-                    // and has regex for this type
-                    let re = unsafe {
-                        match (re as *const Regex).clone().as_ref() {
-                            Some(a) => a,
-                            None => return,
-                        }
-                    };
-                    files.push(File(path.to_path_buf(), re))
-                }
-                _ => {}
+        let aa = REGEX_TABLE.lock();
+        let guard = aa.as_ref().unwrap();
+
+        // 1. Try extension
+        if let Some(t_str) = ext_str {
+            if let Some(re) = guard.get(t_str) {
+                let re = unsafe {
+                    match (re as *const Regex).clone().as_ref() {
+                        Some(a) => a,
+                        None => return,
+                    }
+                };
+                files.push(File(path.to_path_buf(), re));
+                return;
             }
+        }
+
+        // 2. Try filename (lowercase)
+        if let Some(ref name) = file_name_str {
+            if let Some(re) = guard.get(name) {
+                let re = unsafe {
+                    match (re as *const Regex).clone().as_ref() {
+                        Some(a) => a,
+                        None => return,
+                    }
+                };
+                files.push(File(path.to_path_buf(), re));
+                return;
+            }
+        }
+
+        // 3. Fallback for explicit targets
+        if is_explicit {
+            let re = unsafe {
+                match (&*FALLBACK_REGEX as *const Regex).as_ref() {
+                    Some(a) => a,
+                    None => return,
+                }
+            };
+            files.push(File(path.to_path_buf(), re));
         }
     }
 }
@@ -233,11 +271,21 @@ fn bake_bread(file: &File, kwreg: &Option<Regex>, conf: &Config) -> Result<Optio
     loop {
         line_num += 1;
         match buf.read_line(&mut ss) {
-            Ok(0) | Err(_) => {
+            Ok(0) => {
                 if head.is_some() {
                     keyword_checker_and_push(head.unwrap());
                 }
-                break; // if EOF or any error in this file, break
+                break;
+            }
+            Err(e) => {
+                eprintln!(
+                    "Warning: file {} had read error at line {}: {}",
+                    file_p, line_num, e
+                );
+                if head.is_some() {
+                    keyword_checker_and_push(head.unwrap());
+                }
+                break;
             }
             Ok(_) => match filter_line(&ss, line_num, file.1) {
                 Some(cb) => {
@@ -342,6 +390,34 @@ pub fn delete_the_crumbs_on_special_index(
     Ok(file_path)
 }
 
+fn write_file_atomically(file_path: &str, lines: &[Vec<u8>]) -> Result<()> {
+    let temp_path = format!("{}.tmp", file_path);
+    let write_res = (|| {
+        let mut temp_file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(&temp_path)?;
+        for line in lines {
+            temp_file.write_all(line)?;
+            temp_file.write_all(b"\n")?;
+        }
+        Ok(())
+    })();
+
+    if let Err(e) = write_res {
+        let _ = fs::remove_file(&temp_path);
+        return Err(e);
+    }
+
+    if let Err(e) = fs::rename(&temp_path, file_path) {
+        let _ = fs::remove_file(&temp_path);
+        return Err(e);
+    }
+
+    Ok(())
+}
+
 /// delete special lines of the file on file_path
 fn delete_lines_on(
     file_path: &str,
@@ -354,18 +430,10 @@ fn delete_lines_on(
 
     let finish_deleted = delete_nth_lines(reader, all_delete_lines)?
         .into_iter()
-        .map(|line| line.into_bytes());
+        .map(|line| line.into_bytes())
+        .collect::<Vec<_>>();
 
-    let mut new_file = OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open(file_path)?;
-
-    for line in finish_deleted {
-        new_file.write_all(&line)?;
-        new_file.write_all(b"\n")?
-    }
-    Ok(())
+    write_file_atomically(file_path, &finish_deleted)
 }
 
 /// delete crumbs of file, return the new file contents without the crumbs deleted
@@ -453,17 +521,7 @@ fn restore_lines_on<'a>(
         }
     }
 
-    let mut file = OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open(file_path)?;
-
-    for line in new_file {
-        file.write_all(&line)?;
-        file.write_all(b"\n")?
-    }
-
-    Ok(())
+    write_file_atomically(file_path, &new_file)
 }
 
 /// run format command with filepath input

@@ -17,10 +17,12 @@ const DICT: &'static str = r#"
 "asd":[";"],
 "asdf":[";"],
 "py":["\\#"],
-"hs":["-- "],
+"hs":["--", "-- "],
 "el":[";"],
 "clj":[";"],
-"js":["//"]
+"js":["//"],
+"makefile":["\\#"],
+"dockerfile":["\\#"]
 }
 "#;
 
@@ -34,6 +36,10 @@ pub static REGEX_TABLE: LazyLock<Mutex<HashMap<String, Regex>>> = LazyLock::new(
             .map(|(k, v)| (k.clone(), Regex::new(&make_regex(v)).unwrap()))
             .collect()
     })
+});
+
+pub static FALLBACK_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r#"(//+|#+|;+|--+):=\s+(.*)"#).unwrap()
 });
 
 pub static KEYWORDS_REGEX: LazyLock<Mutex<Option<Regex>>> = LazyLock::new(|| Mutex::new(None));

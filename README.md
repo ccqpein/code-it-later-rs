@@ -7,7 +7,7 @@
   - [Installing the Emacs Interface Mode](#installing-the-emacs-interface-mode)
 - [Features](#features)
 - [Usage](#usage)
-  - [Mulit-line](#mulit-line)
+  - [Multi-line](#multi-line)
   - [Filter keyword](#filter-keyword)
   - [Ignore with keyword](#ignore-with-keyword)
   - [Excluding some folder](#excluding-some-folder)
@@ -27,7 +27,7 @@
 
 ## Summary ##
 
-Make flags in source code where may have problems or can be optimized. codeitlater help you track this flags and fix them in future.
+Create flags in your source code where there may be problems or potential optimizations. `codeitlater` helps you track these flags (crumbs) and fix them in the future.
 
 ## Install ##
 
@@ -35,16 +35,16 @@ Make flags in source code where may have problems or can be optimized. codeitlat
 
 ### Installing the Emacs Interface Mode ###
 
-I developed the [code-it-later-mode](https://github.com/ccqpein/code-it-later-mode), which serves as an interface mode for my Emacs.
+I developed the [code-it-later-mode](https://github.com/ccqpein/code-it-later-mode), which serves as an interface mode for Emacs.
 
 ## Features ##
 
-* get comments in source code
-* get comments depending on different key words
-* get comments in special path of dir or files
-* can expand to other languages
+* Extract crumbs (comments containing `:=`) in source code.
+* Filter comments depending on different keywords.
+* Scan specific directory paths or files.
+* Support custom languages via configuration.
 
-Languages support now:
+Languages supported by default:
 
 + rs
 + go
@@ -55,13 +55,13 @@ Languages support now:
 + clj
 + js
 
-If you wanna expand other languages, check [expand json file](#expand-json-file)
+If you want to support other languages, check [expand json file](#expand-json-file).
 
 ## Usage ##
 
-Write code as usual. The comment line that you want to leave mark in, left `:=` symbol after comment symbol.
+Write code as usual. For any comment line you want to track, add the `:=` symbol immediately after the comment prefix.
 
-Then run `codeitlater` command in terminal get those crumbs back. 
+Then run the `codeitlater` command in your terminal to retrieve those crumbs.
 
 For example:
 
@@ -71,21 +71,19 @@ For example:
 // /user/src/main.go
 // test codeitlater
 //:= this line can be read by codeitlater
-//:= MARK: you can left keyword to marked comment line
-/*:= mutil lines comments
+//:= MARK: you can leave a keyword to mark the comment line
+/*:= multiline comments
 */
 
 ```
 
-then run `codeitlater` in code root path 
-
-You will get:
+Then running `codeitlater` in the root path:
 
 ```
 |-- /user/src/main.go
   |-- Line 3: this line can be read by codeitlater
-  |-- Line 4: MARK: you can left keyword to marked comment line
-  |-- Line 5: mutil lines comments
+  |-- Line 4: MARK: you can leave a keyword to mark the comment line
+  |-- Line 5: multiline comments
 ```
 
 **Python**:
@@ -103,32 +101,32 @@ You will get:
 
 ```
 |-- /src/main.py
-  |-- Line 3: this line for codeitlater"
-  |-- Line 4: this line can be read again"
+  |-- Line 3: this line for codeitlater
+  |-- Line 4: this line can be read again
 ```
 
 
-**Give specify file type**
+**Specify file types**
 
 ```
 codeitlater -f clj
 ```
 
-You will get result only from clojure.
+You will get results only from Clojure files.
 
 ```
 codeitlater -f clj -f py
 ```
 
-Then results both of clojure and python will return.
+Then results from both Clojure and Python files will return.
 
 ```
 codeitlater -f clj -f py /path/to/file /path/to/dir
 ```
 
-### Mulit-line ###
+### Multi-line ###
 
-When one line ending with `...`, then, the **next** line will add to this crumb. Also, you can make tail chain for this.
+When a crumb line ends with `...`, the content of the **next** line (which must also start with a crumb marker) is appended to it. You can chain multiple lines this way.
 
 For example:
 
@@ -137,7 +135,7 @@ For example:
 //:= , and line2...
 //:= line3 with line2...
 
-//:= line4 is diffrent...
+//:= line4 is different...
 //:= with line5
 //:= line6
 ```
@@ -146,15 +144,15 @@ Will give you:
 
 ```
   |-- Line 1: line1 , and line2 line3 with line2...
-  |-- Line 4: line4 is diffrent with line5
+  |-- Line 4: line4 is different with line5
   |-- Line 6: line6
 ```
 
 ### Filter keyword ###
 
-Keyword format is `Keyword:` with a space after.
+Keyword format is `Keyword:` followed by a space.
 
-Filter keyword (use -k be keyword flag, check out more flags by -h):
+Filter by keyword (use the `-k` or `--keywords` flags; check out more flags with `-h`):
 
 `codeitlater -k MARK`
 
@@ -162,14 +160,14 @@ You will get:
 
 ```
 |-- /user/src/main.go
-  |-- Line 4: MARK: you can left keyword to marked comment line
+  |-- Line 4: MARK: you can leave a keyword to mark the comment line
 ```
 
-Same format as filetypes, if you want get two keywords together:
+Similar to file types, if you want to query multiple keywords together:
 
 `codeitlater -k TODO --keywords MARK`
 
-**CAUTION:** if keywords and multi-lines are mixed, multi-lines feature has higher priority. 
+**CAUTION:** If keywords and multi-line crumbs are mixed, the multi-line feature takes priority.
 
 Example:
 
@@ -179,7 +177,7 @@ Example:
 //:= MARK: ccc
 ```
 
-Both `codeitlater` and `codeitlater -k TODO` are showing 
+Both `codeitlater` and `codeitlater -k TODO` will show:
 
 > |-- Line 1: TODO: aaaa bbb MARK: ccc
 
@@ -187,44 +185,52 @@ Both `codeitlater` and `codeitlater -k TODO` are showing
 
 ### Ignore with keyword ###
 
-This is the special feature I use in my work. For example:
+To exclude specific crumbs from default runs:
 
 ```rust
 //:= !JIRA-123: hello world
 //:= line2
 ```
 
-The first line "hello world" will be ignore because it start with `'!'`. To show this line is give the keyword `JIRA-123` like `codeitlater -k JIRA-123`
+The first line "hello world" will be ignored by default because it starts with `'!'`. To display it, query for its specific keyword:
 
-Or give the `--show-ignored` true if you want to show everything, like `codeitlater --show-ignored true`.
+`codeitlater -k JIRA-123`
+
+Or pass the `--show-ignored` flag to display all ignored crumbs:
+
+`codeitlater --show-ignored`
 
 ### Excluding some folder ###
 
-`codeitlater -x vendor` will ignore all files in vendor (recursively).
+`codeitlater -x vendor` will ignore all files in the `vendor` directory (recursively).
 
 ### Expand json file ###
 
-Check `tests/test.json`, if you run `codeitlater -j ./tests/test.json`, the "rs" in codeitlater's dictionary will be covered by new value in `test.json`. Other languages are keep same.
+Check [tests/testcases/test.json](file:///Users/ccQ/Code/code-it-later-rs/tests/testcases/test.json). If you run `codeitlater -j ./tests/testcases/test.json`, the `"rs"` entry in the built-in dictionary is overridden by the value in the JSON file. Other languages remain unchanged.
 
 ### Local arguments ###
 
-`codeitlater` will look for `{$PWD}/.codeitlater` file to pre-load arguments. If any arguments those been given in command line, also set inside the `.codeitlater` file, will be rewrote by command line arguments (**except ignore dirs (-x)**, ignore dirs configs located inside `.codeitlater` file and given in command line will merge together). 
+`codeitlater` will look for a `.codeitlater` file in the current working directory (`$PWD/.codeitlater`) to pre-load configuration arguments. Any arguments passed directly on the command line override those in `.codeitlater`, **except for ignore directories (`-x`)**, which are merged together.
 
 ### Delete the crumbs ###
 
-`codeitlater -D target` gonna clean all crumbs inside the files in the target folder. Delete will give prompt interaction, which has `y/n/s/i` options. `y` means delete the bread/crumbs it just shows; `n` means ignore this; `s` means `show`, just re-print it again; `i` going to interact mode, show bread one by one or crumb one by one.
+`codeitlater -D target` removes crumb comments from files in the targeted folder. Deletion triggers an interactive prompt with `y/n/s/i` options:
+- `y`: delete all crumbs shown.
+- `n`: do nothing.
+- `s`: show (re-print the list of crumbs).
+- `i`: interactive mode (allows you to review and confirm deletion file-by-file or crumb-by-crumb).
 
-You can delete special keywords with `codeitlater -D -k TODO`. Generally, `-D` handle after normal `codeitlater` workflow done.
+You can delete special keywords with `codeitlater -D -k TODO`. Generally, `-D` is handled after the normal scan workflow completes.
 
 ### Restore the crumbs ###
 
-Like the delete feature prompt, but this feature restore the crumb left inside the code to normal comments.
+Similar to the delete feature, but this option restores the crumb markers inside the code back to regular comments.
 
 ```golang
 //:= here
 ```
 
-will restore to 
+will restore to:
 
 ```golang
 // here
@@ -232,19 +238,19 @@ will restore to
 
 ### Run format after clean the crumbs ###
 
-After clean some crumbs inside files, you might need some format after it. You can give the `--fmt` options let `codeitlater` run the command given after clean. 
+After cleaning crumbs from your files, you might want to run a formatter. The `--fmt` option specifies a formatter command to run automatically after cleaning.
 
 For example:
 
-`codeitlater -D --fmt "go fmt" .` will delete your crumbs and run the `go fmt`. The command after `--fmt` has to be the standalone command.
+`codeitlater -D --fmt "go fmt" .` will delete your crumbs and run `go fmt` on the files. The command passed to `--fmt` must be a standalone executable command.
 
-As all other options, you can add it inside the local `{$PWD}/.codeitlater`.
+As with all other options, you can add this inside your local `.codeitlater` configuration file.
 
 ### Output to different format of files ###
 
-`-O/--output-format` can output the crumbs in specific format. 
+`-O/--output-format` outputs the crumbs in a specific format.
 
-Support format:
+Supported formats:
 
 + json
 + list
@@ -255,6 +261,6 @@ Example:
 codeitlater -O json .
 ```
 
-### Output the range of context
+### Output the range of context ###
 
-`-r/--range` can output the upper/below lines around the crumb. Making this for giving more context to LLM agent.
+`-r/--range <N>` outputs `N` lines above and below the crumb to provide more context (useful for feeding context to LLM agents).

@@ -82,3 +82,73 @@ fn test_go_file() {
         )]
     );
 }
+
+#[test]
+fn test_hs_file() {
+    let args = Args::parse_from(vec![
+        "codeitlater",
+        "-x",
+        "target",
+        "--",
+        "./tests/testcases/test.hs",
+    ]);
+
+    let conf = config::Config::from(&args);
+
+    assert_eq!(
+        fs_operation::handle_files(conf).collect::<Vec<_>>(),
+        vec![Bread::new(
+            "./tests/testcases/test.hs".to_string(),
+            vec![
+                Crumb::new(1, 0, "comment1".to_string(), "--".to_string()),
+                Crumb::new(2, 0, "comment2".to_string(), "-- ".to_string())
+            ]
+        )]
+    );
+}
+
+#[test]
+fn test_makefile_extensionless() {
+    let args = Args::parse_from(vec![
+        "codeitlater",
+        "-x",
+        "target",
+        "--",
+        "./tests/testcases/Makefile",
+    ]);
+
+    let conf = config::Config::from(&args);
+
+    assert_eq!(
+        fs_operation::handle_files(conf).collect::<Vec<_>>(),
+        vec![Bread::new(
+            "./tests/testcases/Makefile".to_string(),
+            vec![
+                Crumb::new(1, 0, "comment in makefile".to_string(), "#".to_string())
+            ]
+        )]
+    );
+}
+
+#[test]
+fn test_explicit_extensionless_fallback() {
+    let args = Args::parse_from(vec![
+        "codeitlater",
+        "-x",
+        "target",
+        "--",
+        "./tests/testcases/no_ext_explicit",
+    ]);
+
+    let conf = config::Config::from(&args);
+
+    assert_eq!(
+        fs_operation::handle_files(conf).collect::<Vec<_>>(),
+        vec![Bread::new(
+            "./tests/testcases/no_ext_explicit".to_string(),
+            vec![
+                Crumb::new(1, 0, "explicit fallback comment".to_string(), "//".to_string())
+            ]
+        )]
+    );
+}
