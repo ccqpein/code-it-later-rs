@@ -18,6 +18,7 @@
   - [Run format after clean the crumbs](#run-format-after-clean-the-crumbs)
   - [Output to different format of files](#output-to-different-format-of-files)
   - [Output the range of context](#output-the-range-of-context)
+  - [Google Antigravity Integration](#google-antigravity-integration)
 
 **Other Versions (have some features different):**
 
@@ -264,3 +265,13 @@ codeitlater -O json .
 ### Output the range of context ###
 
 `-r/--range <N>` outputs `N` lines above and below the crumb to provide more context (useful for feeding context to LLM agents).
+
+## Google Antigravity Integration ##
+
+If you use Google Antigravity (AGY) as your AI coding assistant, you can install the custom `code-it-later` skill to let the assistant scan and manage crumbs in your codebase.
+
+To install or update the skill, copy `SKILL.md` to your local Antigravity skills directory:
+
+```shell
+cp ./SKILL.md ~/.gemini/antigravity-cli/skills/code-it-later/SKILL.md
+```
