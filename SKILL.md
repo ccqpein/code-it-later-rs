@@ -1,6 +1,6 @@
 ---
 name: code-it-later
-description: Scan codebase comments to find development crumbs, TODOs, and backlog items using the `codeitlater` CLI tool, and clean or restore them after implementation.
+description: Scan codebase comments to find development crumbs, TODOs, and backlog items using the `codeitlater` CLI tool, and ask the user whether to clean or restore them after implementation.
 ---
 
 # code-it-later Skill
@@ -59,4 +59,4 @@ The `codeitlater` binary is installed locally and can be executed via terminal c
 2. **Check Configuration**: Always check if a `.codeitlater` file exists in the repository root directory. It may contain repository-specific arguments (like excluded paths or default keywords) that will be pre-loaded.
 3. **Structured Parsing**: Prefer using `-O json` when you need to programmatically parse or inspect the exact lines and structures of crumbs in the codebase.
 4. **Implementation**: Address the code comments flagged by the crumbs.
-5. **Clean-up**: Once the code changes are complete and verified, **always ask the user for permission** before cleaning up the crumbs (using `codeitlater -D` or `codeitlater -R`), unless the user explicitly ordered you to do so in their request.
+5. **Clean-up**: Once the code changes are complete and verified, **always ask the user whether they want to clean up (delete) or restore the crumbs**, and obtain their explicit preference before running `codeitlater -D` or `codeitlater -R`. Do not perform clean-up or restore automatically.
