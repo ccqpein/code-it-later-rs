@@ -39,7 +39,7 @@ pub struct Args {
     #[arg(short = 'R', long = "restore")]
     pub(crate) restore: bool,
 
-    /// Assume yes to all prompts
+    /// Assume yes to all prompts (Only for Delete and Restore)
     #[arg(short = 'y', long = "yes")]
     pub(crate) yes: bool,
 
