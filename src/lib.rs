@@ -15,66 +15,92 @@ use datatypes::*;
 pub fn prompt(mut conf: config::Config) -> Result<Option<HashSet<String>>, String> {
     if conf.delete {
         // only delete is true gonna triger the prompt
-        let mut rl = rustyline::Editor::<()>::new();
         conf.delete = false;
+        let yes = conf.yes;
         let breads = fs_operation::handle_files(conf).collect::<Vec<_>>();
         let mut files_changed = None;
-        loop {
-            breads.iter().for_each(|b| println!("{}", b));
-            match rl.readline("Are you sure you want to delete all crumbs? (y/n/s/i): ") {
-                Ok(s) => match s.as_str() {
-                    "y" => {
-                        let mut cache = HashSet::new();
-                        for b in breads {
-                            cache.insert(
-                                fs_operation::delete_the_crumbs(b).map_err(|e| e.to_string())?,
-                            );
-                        }
-                        if !cache.is_empty() {
-                            files_changed = Some(cache)
-                        };
-                    }
-                    "n" => (), // do nothing
-                    "s" => continue,
-                    "i" => {
-                        files_changed = Some(prompt_bread(breads.into_iter(), &mut rl, "delete")?)
-                    }
-                    _ => return Err("I don't understand, please give y/n/s/i".to_string()),
-                },
-                Err(e) => return Err(format!("error in prompt readline {}", e.to_string())),
+        if yes {
+            let mut cache = HashSet::new();
+            for b in breads {
+                cache.insert(
+                    fs_operation::delete_the_crumbs(b).map_err(|e| e.to_string())?,
+                );
             }
-            break;
+            if !cache.is_empty() {
+                files_changed = Some(cache)
+            };
+        } else {
+            let mut rl = rustyline::Editor::<()>::new();
+            loop {
+                breads.iter().for_each(|b| println!("{}", b));
+                match rl.readline("Are you sure you want to delete all crumbs? (y/n/s/i): ") {
+                    Ok(s) => match s.as_str() {
+                        "y" => {
+                            let mut cache = HashSet::new();
+                            for b in breads {
+                                cache.insert(
+                                    fs_operation::delete_the_crumbs(b).map_err(|e| e.to_string())?,
+                                );
+                            }
+                            if !cache.is_empty() {
+                                files_changed = Some(cache)
+                            };
+                        }
+                        "n" => (), // do nothing
+                        "s" => continue,
+                        "i" => {
+                            files_changed = Some(prompt_bread(breads.into_iter(), &mut rl, "delete")?)
+                        }
+                        _ => return Err("I don't understand, please give y/n/s/i".to_string()),
+                    },
+                    Err(e) => return Err(format!("error in prompt readline {}", e.to_string())),
+                }
+                break;
+            }
         }
         Ok(files_changed)
     } else if conf.restore {
-        let mut rl = rustyline::Editor::<()>::new();
+        let yes = conf.yes;
         let breads = fs_operation::handle_files(conf).collect::<Vec<_>>();
         let mut files_changed = None;
-        loop {
-            breads.iter().for_each(|b| println!("{}", b));
-            match rl.readline("Are you sure you want to restore all crumbs? (y/n/s/i): ") {
-                Ok(s) => match s.as_str() {
-                    "y" => {
-                        let mut cache = HashSet::new();
-                        for b in breads {
-                            cache.insert(
-                                fs_operation::restore_the_crumb(b).map_err(|e| e.to_string())?,
-                            );
-                        }
-                        if !cache.is_empty() {
-                            files_changed = Some(cache)
-                        };
-                    }
-                    "n" => (), // do nothing
-                    "s" => continue,
-                    "i" => {
-                        files_changed = Some(prompt_bread(breads.into_iter(), &mut rl, "restore")?)
-                    }
-                    _ => return Err("I don't understand, please give y/n/s/i".to_string()),
-                },
-                Err(e) => return Err(format!("error in prompt readline {}", e.to_string())),
+        if yes {
+            let mut cache = HashSet::new();
+            for b in breads {
+                cache.insert(
+                    fs_operation::restore_the_crumb(b).map_err(|e| e.to_string())?,
+                );
             }
-            break;
+            if !cache.is_empty() {
+                files_changed = Some(cache)
+            };
+        } else {
+            let mut rl = rustyline::Editor::<()>::new();
+            loop {
+                breads.iter().for_each(|b| println!("{}", b));
+                match rl.readline("Are you sure you want to restore all crumbs? (y/n/s/i): ") {
+                    Ok(s) => match s.as_str() {
+                        "y" => {
+                            let mut cache = HashSet::new();
+                            for b in breads {
+                                cache.insert(
+                                    fs_operation::restore_the_crumb(b).map_err(|e| e.to_string())?,
+                                );
+                            }
+                            if !cache.is_empty() {
+                                files_changed = Some(cache)
+                            };
+                        }
+                        "n" => (), // do nothing
+                        "s" => continue,
+                        "i" => {
+                            files_changed = Some(prompt_bread(breads.into_iter(), &mut rl, "restore")?)
+                        }
+                        _ => return Err("I don't understand, please give y/n/s/i".to_string()),
+                    },
+                    Err(e) => return Err(format!("error in prompt readline {}", e.to_string())),
+                }
+                break;
+            }
         }
         Ok(files_changed)
     } else {

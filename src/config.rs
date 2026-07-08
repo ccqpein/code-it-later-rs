@@ -126,6 +126,9 @@ pub struct Config {
     /// if restore
     pub(super) restore: bool,
 
+    /// assume yes to prompts
+    pub(super) yes: bool,
+
     /// output format
     pub(super) output: OutputFormat,
 
@@ -168,6 +171,7 @@ impl From<&Args> for Config {
             // delete and restore cannot be true at the same time
             // and delete has higher priority
             restore: if a.delete { false } else { a.restore },
+            yes: a.yes,
 
             output,
             show_ignored: a.show_ignore,

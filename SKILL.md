@@ -44,14 +44,14 @@ The `codeitlater` binary is installed locally and can be executed via terminal c
    codeitlater --show-ignored
    ```
 
-5. **Interact and clean up crumbs**:
+5. **Clean up crumbs**:
    After resolving a crumb's task, you can clean it up (delete) or restore it to a normal comment:
    ```bash
-   # Delete the crumbs (interactive prompt)
-   codeitlater -D
+   # Delete the crumbs (using -y to bypass interactive prompt)
+   codeitlater -D -y
    
-   # Restore crumbs to normal comments (interactive prompt)
-   codeitlater -R
+   # Restore crumbs to normal comments (using -y to bypass interactive prompt)
+   codeitlater -R -y
    ```
 
 ## Agent Guidelines
@@ -59,4 +59,4 @@ The `codeitlater` binary is installed locally and can be executed via terminal c
 2. **Check Configuration**: Always check if a `.codeitlater` file exists in the repository root directory. It may contain repository-specific arguments (like excluded paths or default keywords) that will be pre-loaded.
 3. **Structured Parsing**: Prefer using `-O json` when you need to programmatically parse or inspect the exact lines and structures of crumbs in the codebase.
 4. **Implementation**: Address the code comments flagged by the crumbs.
-5. **Clean-up**: Once the code changes are complete and verified, **always ask the user whether they want to clean up (delete) or restore the crumbs**, and obtain their explicit preference before running `codeitlater -D` or `codeitlater -R`. Do not perform clean-up or restore automatically.
+5. **Clean-up**: Once the code changes are complete and verified, **always ask the user whether they want to clean up (delete) or restore the crumbs**, and obtain their explicit preference before running `codeitlater -D -y` or `codeitlater -R -y`. Do not perform clean-up or restore automatically.

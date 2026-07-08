@@ -65,6 +65,60 @@ fn test_restore_the_crumbs() -> Result<()> {
     remove_file("./tests/testcases/clean_case_0.rs")
 }
 
+#[test]
+fn test_prompt_delete_with_yes() -> Result<()> {
+    let _lock = TEST_CLEAN_LOCK.lock();
+    copy(
+        "./tests/testcases/clean_case_0.rs.bkp",
+        "./tests/testcases/clean_case_0.rs",
+    )?;
+
+    let args = Args::parse_from(vec![
+        "codeitlater",
+        "-D",
+        "-y",
+        "./tests/testcases/clean_case_0.rs",
+    ]);
+    let conf = config::Config::from(&args);
+
+    let files_changed = prompt(conf).unwrap();
+    assert!(files_changed.is_some());
+    assert!(same_file(
+        "tests/testcases/clean_case_0.rs.delete_expect",
+        "tests/testcases/clean_case_0.rs",
+    )
+    .unwrap());
+
+    remove_file("./tests/testcases/clean_case_0.rs")
+}
+
+#[test]
+fn test_prompt_restore_with_yes() -> Result<()> {
+    let _lock = TEST_CLEAN_LOCK.lock();
+    copy(
+        "./tests/testcases/clean_case_0.rs.bkp",
+        "./tests/testcases/clean_case_0.rs",
+    )?;
+
+    let args = Args::parse_from(vec![
+        "codeitlater",
+        "-R",
+        "-y",
+        "./tests/testcases/clean_case_0.rs",
+    ]);
+    let conf = config::Config::from(&args);
+
+    let files_changed = prompt(conf).unwrap();
+    assert!(files_changed.is_some());
+    assert!(same_file(
+        "tests/testcases/clean_case_0.rs.restore_expect",
+        "tests/testcases/clean_case_0.rs",
+    )
+    .unwrap());
+
+    remove_file("./tests/testcases/clean_case_0.rs")
+}
+
 //#[test]
 //:= fmt command change, this test case need to fix in future
 // fn test_fmt_after_clean() -> Result<()> {

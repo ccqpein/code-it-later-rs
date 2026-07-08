@@ -39,6 +39,10 @@ pub struct Args {
     #[arg(short = 'R', long = "restore")]
     pub(crate) restore: bool,
 
+    /// Assume yes to all prompts
+    #[arg(short = 'y', long = "yes")]
+    pub(crate) yes: bool,
+
     /// Format command after delete crumbs
     #[arg(long = "fmt")]
     pub(crate) fmt_command: Option<String>,
@@ -90,6 +94,10 @@ impl Args {
 
         if other.restore {
             self.restore = other.restore
+        }
+
+        if other.yes {
+            self.yes = other.yes
         }
 
         if other.fmt_command.is_some() {
@@ -238,6 +246,11 @@ mod tests {
         assert_eq!(args.delete, true);
         assert_eq!(args.ignore_dirs, vec!["dd", "ff"]);
         assert_eq!(args.restore, true);
+
+        let args = vec!["codeitlater", "-D", "-y"];
+        let args = Args::parse_from(args);
+        assert_eq!(args.delete, true);
+        assert_eq!(args.yes, true);
     }
 
     #[test]
