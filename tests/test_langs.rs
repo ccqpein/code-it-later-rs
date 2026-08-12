@@ -7,17 +7,44 @@ use code_it_later_rs::{
 
 #[test]
 fn test_rs_file() {
-    let args = Args::parse_from(vec!["codeitlater", "-x", "target", "./tests/testcases/test.rs"]);
+    let args = Args::parse_from(vec![
+        "codeitlater",
+        "-x",
+        "target",
+        "./tests/testcases/test.rs",
+    ]);
 
     let conf = config::Config::from(&args);
+    let mut x = Crumb::new(
+        1,
+        0,
+        "this is rust".to_string(),
+        "/*".to_string(),
+        String::new(),
+    )
+    .with_has_tail(true);
+
+    x.add_tail(Crumb::new(
+        2,
+        1,
+        "".to_string(),
+        String::new(),
+        "*/".to_string(),
+    ));
 
     assert_eq!(
         fs_operation::handle_files(conf).collect::<Vec<_>>(),
         vec![Bread::new(
             "./tests/testcases/test.rs".to_string(),
             vec![
-                Crumb::new(1, 0, "this is rust".to_string(), "/*".to_string()),
-                Crumb::new(4, 0, "this is also rust".to_string(), "///".to_string())
+                x,
+                Crumb::new(
+                    4,
+                    0,
+                    "this is also rust".to_string(),
+                    "///".to_string(),
+                    String::new()
+                )
             ]
         )]
     );
@@ -43,7 +70,8 @@ fn test_py_file() {
                 1,
                 0,
                 "this is python".to_string(),
-                "#".to_string()
+                "#".to_string(),
+                String::new()
             ),]
         )]
     );
@@ -70,13 +98,15 @@ fn test_go_file() {
                     3,
                     0,
                     "this line can be read by codeitlater".to_string(),
-                    "//".to_string()
+                    "//".to_string(),
+                    String::new()
                 ),
                 Crumb::new(
                     4,
                     0,
                     "MARK: you can left keyword to marked comment line".to_string(),
-                    "//".to_string()
+                    "//".to_string(),
+                    String::new()
                 )
             ]
         )]
@@ -100,8 +130,20 @@ fn test_hs_file() {
         vec![Bread::new(
             "./tests/testcases/test.hs".to_string(),
             vec![
-                Crumb::new(1, 0, "comment1".to_string(), "--".to_string()),
-                Crumb::new(2, 0, "comment2".to_string(), "-- ".to_string())
+                Crumb::new(
+                    1,
+                    0,
+                    "comment1".to_string(),
+                    "--".to_string(),
+                    String::new()
+                ),
+                Crumb::new(
+                    2,
+                    0,
+                    "comment2".to_string(),
+                    "-- ".to_string(),
+                    String::new()
+                )
             ]
         )]
     );
@@ -123,9 +165,13 @@ fn test_makefile_extensionless() {
         fs_operation::handle_files(conf).collect::<Vec<_>>(),
         vec![Bread::new(
             "./tests/testcases/Makefile".to_string(),
-            vec![
-                Crumb::new(1, 0, "comment in makefile".to_string(), "#".to_string())
-            ]
+            vec![Crumb::new(
+                1,
+                0,
+                "comment in makefile".to_string(),
+                "#".to_string(),
+                String::new()
+            )]
         )]
     );
 }
@@ -146,9 +192,13 @@ fn test_explicit_extensionless_fallback() {
         fs_operation::handle_files(conf).collect::<Vec<_>>(),
         vec![Bread::new(
             "./tests/testcases/no_ext_explicit".to_string(),
-            vec![
-                Crumb::new(1, 0, "explicit fallback comment".to_string(), "//".to_string())
-            ]
+            vec![Crumb::new(
+                1,
+                0,
+                "explicit fallback comment".to_string(),
+                "//".to_string(),
+                String::new()
+            )]
         )]
     );
 }

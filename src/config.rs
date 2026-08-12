@@ -11,8 +11,8 @@ use super::args::Args;
 /// Inner dictionary
 const DICT: &'static str = r#"
 {
-"rs":["//", "/\\*"],
-"go":["//", "/\\*", "// "],
+"rs":["//"],
+"go":["//", "// "],
 "lisp":[";"],
 "asd":[";"],
 "asdf":[";"],
@@ -38,9 +38,32 @@ pub static REGEX_TABLE: LazyLock<Mutex<HashMap<String, Regex>>> = LazyLock::new(
     })
 });
 
-pub static FALLBACK_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"(//+|#+|;+|--+):=\s+(.*)"#).unwrap()
-});
+/// Inner dictionary for multi-line comment syntax
+const DICT_MUL_LINE: &'static str = r#"
+{
+"rs":[["/\\*", "\\*/"]],
+"go":[["/\\*", "\\*/"]],
+"js":[["/\\*", "\\*/"]],
+"hs":[["\\{-", "-\\}"]],
+"py":[["\"\"\"", "\"\"\""], ["'''", "'''"]]
+}
+"#;
+
+pub static TABLE_MUL: LazyLock<Mutex<HashMap<String, Vec<(String, String)>>>> =
+    LazyLock::new(|| Mutex::new(serde_json::from_str(DICT_MUL_LINE).unwrap()));
+
+pub static REGEX_TABLE_MUL: LazyLock<Mutex<HashMap<String, (Regex, Regex)>>> =
+    LazyLock::new(|| {
+        Mutex::new({
+            let a = TABLE_MUL.lock().unwrap();
+            a.iter()
+                .map(|(k, v)| (k.clone(), make_mul_regex(v)))
+                .collect()
+        })
+    });
+
+pub static FALLBACK_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"(//+|#+|;+|--+):=\s+(.*)"#).unwrap());
 
 pub static KEYWORDS_REGEX: LazyLock<Mutex<Option<Regex>>> = LazyLock::new(|| Mutex::new(None));
 
@@ -75,6 +98,30 @@ fn make_regex(com_syms: &Vec<String>) -> String {
 
     format!("({}):=\\s+(.*)", head)
 }
+
+/// Making regex tuple (start_regex, end_regex) for multi-line comments
+fn make_mul_regex(com_syms: &Vec<(String, String)>) -> (Regex, Regex) {
+    let mut start_head = String::new();
+    let mut end_head = String::new();
+    for (start, end) in com_syms {
+        start_head.push('|');
+        start_head.push_str(start);
+        start_head.push_str("+");
+
+        end_head.push('|');
+        end_head.push_str(end);
+        end_head.push_str("+");
+    }
+
+    let _ = start_head.drain(..1).collect::<String>();
+    let _ = end_head.drain(..1).collect::<String>();
+
+    let start_re = Regex::new(&format!("({}):=\\s*(.*)", start_head)).unwrap();
+    let end_re = Regex::new(&format!("(.*)({})", end_head)).unwrap();
+
+    (start_re, end_re)
+}
+
 
 /// making the keyword regex, case insensitive
 pub(super) fn make_key_regex(keywords: &Vec<String>) {
@@ -190,13 +237,14 @@ mod tests {
     fn test_update_table() {
         assert_eq!(
             TABLE.lock().unwrap().get("rs").unwrap(),
-            &vec![String::from("//"), String::from(r#"/\*"#)]
+            &vec![String::from("//")]
         );
 
         assert_eq!(
             REGEX_TABLE.lock().unwrap().get("rs").unwrap().as_str(),
-            &String::from(r#"(//+|/\*+):=\s+(.*)"#)
+            &String::from(r#"(//+):=\s+(.*)"#)
         );
+
 
         // update here
         update_table(r##"{"rs":["//","#"]}"##);

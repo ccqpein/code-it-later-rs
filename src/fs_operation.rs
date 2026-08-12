@@ -1,3 +1,5 @@
+use crate::config::REGEX_TABLE_MUL;
+
 use super::config::{Config, FALLBACK_REGEX, KEYWORDS_REGEX, REGEX_TABLE};
 use super::datatypes::*;
 use log::debug;
@@ -20,7 +22,11 @@ type Dirs = Vec<PathBuf>;
 /// File struct, including file path and the &Regex of this file
 /// &Regex CANNOT be nil
 #[derive(Debug)]
-struct File(PathBuf, &'static Regex);
+struct File(
+    PathBuf,
+    Option<&'static Regex>,
+    Option<&'static (Regex, Regex)>,
+);
 
 impl File {
     /// Return string of file path
@@ -128,51 +134,64 @@ fn file_checker(
             if filetypes.contains(&t.to_os_string()) {
                 // this file include in filetypes
                 let aa = REGEX_TABLE.lock();
+                let bb = REGEX_TABLE_MUL.lock();
+
                 if let Some(t_str) = ext_str {
-                    match aa.as_ref().unwrap().get(t_str) {
-                        Some(re) => {
-                            // and has regex for this type
-                            let re = unsafe {
-                                match (re as *const Regex).clone().as_ref() {
-                                    Some(a) => a,
-                                    None => return,
-                                }
-                            };
-                            files.push(File(path.to_path_buf(), re))
-                        }
-                        _ => {}
+                    let single_line_re = match aa.as_ref().unwrap().get(t_str) {
+                        Some(re) => unsafe { (re as *const Regex).as_ref() },
+                        _ => None,
+                    };
+
+                    let mul_line_re = match bb.as_ref().unwrap().get(t_str) {
+                        Some(re) => unsafe { (re as *const (Regex, Regex)).as_ref() },
+                        _ => None,
+                    };
+
+                    if single_line_re.is_some() || mul_line_re.is_some() {
+                        files.push(File(path.to_path_buf(), single_line_re, mul_line_re));
                     }
                 }
             }
         }
     } else {
         let aa = REGEX_TABLE.lock();
-        let guard = aa.as_ref().unwrap();
+        let aa_guard = aa.as_ref().unwrap();
+
+        let bb = REGEX_TABLE_MUL.lock();
+        let bb_guard = bb.as_ref().unwrap();
 
         // 1. Try extension
         if let Some(t_str) = ext_str {
-            if let Some(re) = guard.get(t_str) {
-                let re = unsafe {
-                    match (re as *const Regex).clone().as_ref() {
-                        Some(a) => a,
-                        None => return,
-                    }
-                };
-                files.push(File(path.to_path_buf(), re));
+            let single_line_re = match aa_guard.get(t_str) {
+                Some(re) => unsafe { (re as *const Regex).as_ref() },
+                None => None,
+            };
+
+            let mul_line_re = match bb_guard.get(t_str) {
+                Some(re) => unsafe { (re as *const (Regex, Regex)).as_ref() },
+                None => None,
+            };
+
+            if single_line_re.is_some() || mul_line_re.is_some() {
+                files.push(File(path.to_path_buf(), single_line_re, mul_line_re));
                 return;
             }
         }
 
         // 2. Try filename (lowercase)
         if let Some(ref name) = file_name_str {
-            if let Some(re) = guard.get(name) {
-                let re = unsafe {
-                    match (re as *const Regex).clone().as_ref() {
-                        Some(a) => a,
-                        None => return,
-                    }
-                };
-                files.push(File(path.to_path_buf(), re));
+            let single_line_re = match aa_guard.get(name) {
+                Some(re) => unsafe { (re as *const Regex).as_ref() },
+                None => None,
+            };
+
+            let mul_line_re = match bb_guard.get(name) {
+                Some(re) => unsafe { (re as *const (Regex, Regex)).as_ref() },
+                None => None,
+            };
+
+            if single_line_re.is_some() || mul_line_re.is_some() {
+                files.push(File(path.to_path_buf(), single_line_re, mul_line_re));
                 return;
             }
         }
@@ -185,34 +204,140 @@ fn file_checker(
                     None => return,
                 }
             };
-            files.push(File(path.to_path_buf(), re));
+            files.push(File(path.to_path_buf(), Some(re), None));
         }
     }
 }
 
-/// Filter this line
-fn filter_line(line: &str, line_num: usize, re: &Regex) -> Option<Crumb> {
-    match re.find(line) {
-        Some(mat) => {
-            let position = mat.start();
-            let cap = re.captures(line).unwrap();
-            let content = cap[2].to_string();
-            let comment_symbol_header = cap[1].to_string();
-            if content.starts_with('!') {
-                Some(
-                    Crumb::new(line_num, position, content, comment_symbol_header)
-                        .add_ignore_flag(),
-                )
-            } else {
-                Some(Crumb::new(
-                    line_num,
-                    position,
-                    content,
-                    comment_symbol_header,
-                ))
+/// The status pass to filter_line
+enum FilterLineStatus {
+    /// default, without any previous status
+    /// with the one line regex and the mutliline regex start and end
+    None,
+
+    /// in multiple line comment, everything is comment
+    InMulLine,
+}
+
+struct FilterLiner<'this_file> {
+    regex_single_line: Option<&'this_file Regex>,
+
+    regex_multiple_line: Option<&'this_file (Regex, Regex)>,
+
+    status: FilterLineStatus,
+}
+
+impl<'this_file> FilterLiner<'this_file> {
+    fn filter_line(&mut self, line: &str, line_num: usize) -> Option<Crumb> {
+        match self.status {
+            FilterLineStatus::None => {
+                // multi line first
+                if let Some(aa) = self.regex_multiple_line {
+                    match aa.0.find(line) {
+                        Some(mat) => {
+                            let position = mat.start();
+                            let cap = aa.0.captures(line).unwrap();
+                            let content = cap[2].to_string();
+                            let comment_symbol_header = cap[1].to_string();
+                            let mut res = if content.starts_with('!') {
+                                Crumb::new(
+                                    line_num,
+                                    position,
+                                    content,
+                                    comment_symbol_header,
+                                    String::new(),
+                                )
+                                .add_ignore_flag()
+                            } else {
+                                Crumb::new(
+                                    line_num,
+                                    position,
+                                    content,
+                                    comment_symbol_header,
+                                    String::new(),
+                                )
+                            };
+
+                            // crumb will have the tail
+                            res.has_tail = true;
+
+                            // update to in mul lines
+                            self.status = FilterLineStatus::InMulLine;
+
+                            return Some(res);
+                        }
+                        None => (),
+                    }
+                }
+
+                if let Some(bb) = self.regex_single_line {
+                    match bb.find(line) {
+                        Some(mat) => {
+                            let position = mat.start();
+                            let cap = bb.captures(line).unwrap();
+                            let content = cap[2].to_string();
+                            let comment_symbol_header = cap[1].to_string();
+                            let res = if content.starts_with('!') {
+                                Crumb::new(
+                                    line_num,
+                                    position,
+                                    content,
+                                    comment_symbol_header,
+                                    String::new(),
+                                )
+                                .add_ignore_flag()
+                            } else {
+                                Crumb::new(
+                                    line_num,
+                                    position,
+                                    content,
+                                    comment_symbol_header,
+                                    String::new(),
+                                )
+                            };
+
+                            return Some(res);
+                        }
+                        None => (),
+                    }
+                }
+                return None;
+            }
+            FilterLineStatus::InMulLine => {
+                let aa = self.regex_multiple_line.unwrap();
+                if let Some(_mat) = aa.1.find(line) {
+                    self.status = FilterLineStatus::None;
+                    let cap = aa.1.captures(line).unwrap();
+                    let raw_content = &cap[1];
+                    let content = raw_content
+                        .trim_start()
+                        .trim_end_matches(['\r', '\n'])
+                        .to_string();
+                    let position = line.len() - line.trim_start().len();
+                    let comment_symbol_endding = cap[2].to_string();
+                    let cr = Crumb::new(
+                        line_num,
+                        position,
+                        content,
+                        String::new(),
+                        comment_symbol_endding,
+                    );
+                    Some(cr)
+                } else {
+                    let content = line.trim_start().trim_end_matches(['\r', '\n']);
+                    let position = line.len() - line.trim_start().len();
+                    let mut cr = Crumb::new(
+                        line_num,
+                        position,
+                        content.to_string(),
+                        String::new(),
+                        String::new(),
+                    );
+                    cr.has_tail = true;
+                    Some(cr)
+                }
             }
         }
-        None => None,
     }
 }
 
@@ -239,7 +364,8 @@ fn op_file(file: File, kwreg: &Option<Regex>, conf: Arc<RwLock<Config>>) -> Resu
     }
 }
 
-/// make bread for this file
+/// Make bread for this file
+/// Major logic inside this function
 fn bake_bread(file: &File, kwreg: &Option<Regex>, conf: &Config) -> Result<Option<Bread>> {
     // start to read file
     let mut buf = vec![];
@@ -256,6 +382,7 @@ fn bake_bread(file: &File, kwreg: &Option<Regex>, conf: &Config) -> Result<Optio
 
     // closure for keywords feature
     let mut keyword_checker_and_push = |mut cb: Crumb| {
+        cb.has_tail = false;
         if kwreg.is_some() {
             // filter_keywords will update keyword even the crumb is ignored
             if cb.filter_keywords(kwreg.as_ref().unwrap()) {
@@ -266,6 +393,13 @@ fn bake_bread(file: &File, kwreg: &Option<Regex>, conf: &Config) -> Result<Optio
                 result.push(cb)
             }
         }
+    };
+
+    // make the new filter
+    let mut fl = FilterLiner {
+        regex_single_line: file.1,
+        regex_multiple_line: file.2,
+        status: FilterLineStatus::None,
     };
 
     loop {
@@ -287,8 +421,8 @@ fn bake_bread(file: &File, kwreg: &Option<Regex>, conf: &Config) -> Result<Optio
                 }
                 break;
             }
-            Ok(_) => match filter_line(&ss, line_num, file.1) {
-                Some(cb) => {
+            Ok(_) => match fl.filter_line(&ss, line_num) {
+                Some(mut cb) => {
                     // check head first
                     match head {
                         Some(ref mut h) => {
@@ -494,26 +628,29 @@ pub fn restore_the_crumb_on_special_index(
 
 fn restore_lines_on<'a>(
     file_path: &'a str,
-    all_restore_lines: impl Iterator<Item = (usize, usize, &'a str, &'a str)>,
+    all_restore_lines: impl Iterator<Item = (usize, usize, &'a str, &'a str, &'a str)>,
 ) -> Result<()> {
     let f = fs::File::open(&file_path)?;
     let reader = BufReader::new(f).lines();
 
-    let mut table: HashMap<usize, (usize, &str, &str)> =
+    let mut table: HashMap<usize, (usize, &str, &str, &str)> =
         HashMap::with_capacity(all_restore_lines.size_hint().1.unwrap_or(0));
 
-    all_restore_lines.for_each(|(line_num, pos, header, content)| {
-        table.insert(line_num, (pos, header, content));
+    all_restore_lines.for_each(|(line_num, pos, header, endding, content)| {
+        table.insert(line_num, (pos, header, content, endding));
     });
 
     let mut new_file = Vec::with_capacity(reader.size_hint().1.unwrap_or(0));
     for (line_num, ll) in reader.enumerate() {
-        if let Some((pos, header, content)) = table.get(&(line_num + 1)) {
+        if let Some((pos, header, content, endding)) = table.get(&(line_num + 1)) {
             let mut new_l = ll?;
             new_l.truncate(*pos);
             new_l.push_str(*header);
-            new_l.push_str(" ");
+            if *header != "" {
+                new_l.push_str(" ");
+            }
             new_l.push_str(*content);
+            new_l.push_str(*endding);
 
             new_file.push(new_l.into_bytes())
         } else {

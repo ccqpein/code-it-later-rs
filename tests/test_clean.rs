@@ -1,7 +1,7 @@
 use clap::Parser;
 use code_it_later_rs::{args::*, *};
 use std::fs::{self, copy, remove_file};
-use std::io::{prelude::*, BufReader, Result};
+use std::io::{BufReader, Result, prelude::*};
 use std::path::Path;
 use std::sync::{LazyLock, Mutex};
 
@@ -29,11 +29,13 @@ fn test_delete_the_crumbs() -> Result<()> {
 
     let mut bread = fs_operation::handle_files(conf);
     fs_operation::delete_the_crumbs(bread.next().unwrap())?;
-    assert!(same_file(
-        "tests/testcases/clean_case_0.rs.delete_expect",
-        "tests/testcases/clean_case_0.rs",
-    )
-    .unwrap());
+    assert!(
+        same_file(
+            "tests/testcases/clean_case_0.rs.delete_expect",
+            "tests/testcases/clean_case_0.rs",
+        )
+        .unwrap()
+    );
 
     remove_file("./tests/testcases/clean_case_0.rs")
 }
@@ -56,11 +58,13 @@ fn test_restore_the_crumbs() -> Result<()> {
     let mut bread = fs_operation::handle_files(conf);
     fs_operation::restore_the_crumb(bread.next().unwrap())?;
 
-    assert!(same_file(
-        "tests/testcases/clean_case_0.rs.restore_expect",
-        "tests/testcases/clean_case_0.rs",
-    )
-    .unwrap());
+    assert!(
+        same_file(
+            "tests/testcases/clean_case_0.rs.restore_expect",
+            "tests/testcases/clean_case_0.rs",
+        )
+        .unwrap()
+    );
 
     remove_file("./tests/testcases/clean_case_0.rs")
 }
@@ -83,11 +87,13 @@ fn test_prompt_delete_with_yes() -> Result<()> {
 
     let files_changed = prompt(conf).unwrap();
     assert!(files_changed.is_some());
-    assert!(same_file(
-        "tests/testcases/clean_case_0.rs.delete_expect",
-        "tests/testcases/clean_case_0.rs",
-    )
-    .unwrap());
+    assert!(
+        same_file(
+            "tests/testcases/clean_case_0.rs.delete_expect",
+            "tests/testcases/clean_case_0.rs",
+        )
+        .unwrap()
+    );
 
     remove_file("./tests/testcases/clean_case_0.rs")
 }
@@ -110,13 +116,73 @@ fn test_prompt_restore_with_yes() -> Result<()> {
 
     let files_changed = prompt(conf).unwrap();
     assert!(files_changed.is_some());
-    assert!(same_file(
-        "tests/testcases/clean_case_0.rs.restore_expect",
-        "tests/testcases/clean_case_0.rs",
-    )
-    .unwrap());
+    assert!(
+        same_file(
+            "tests/testcases/clean_case_0.rs.restore_expect",
+            "tests/testcases/clean_case_0.rs",
+        )
+        .unwrap()
+    );
 
     remove_file("./tests/testcases/clean_case_0.rs")
+}
+
+#[test]
+fn test_delete_go_multiline_crumbs() -> Result<()> {
+    let _lock = TEST_CLEAN_LOCK.lock();
+    copy(
+        "./tests/testcases/clean_case_1.go.bkp",
+        "./tests/testcases/clean_case_1.go",
+    )?;
+
+    let args = Args::parse_from(vec!["codeitlater", "./tests/testcases/clean_case_1.go"]);
+    let conf = config::Config::from(&args);
+
+    let mut bread = fs_operation::handle_files(conf);
+    let mut bb = bread.collect::<Vec<_>>();
+    dbg!(&bb);
+
+    //fs_operation::delete_the_crumbs(bread.next().unwrap())?;
+    fs_operation::delete_the_crumbs(bb.remove(0))?;
+    dbg!(std::fs::read_to_string("tests/testcases/clean_case_1.go").unwrap());
+    assert!(
+        same_file(
+            "tests/testcases/clean_case_1.go.delete_expect",
+            "tests/testcases/clean_case_1.go",
+        )
+        .unwrap()
+    );
+
+    remove_file("./tests/testcases/clean_case_1.go")
+}
+
+#[test]
+fn test_restore_go_multiline_crumbs() -> Result<()> {
+    let _lock = TEST_CLEAN_LOCK.lock();
+    copy(
+        "./tests/testcases/clean_case_1.go.bkp",
+        "./tests/testcases/clean_case_1.go",
+    )?;
+
+    let args = Args::parse_from(vec!["codeitlater", "./tests/testcases/clean_case_1.go"]);
+    let conf = config::Config::from(&args);
+
+    let mut bread = fs_operation::handle_files(conf);
+    let mut bb = bread.collect::<Vec<_>>();
+    dbg!(&bb);
+
+    //fs_operation::restore_the_crumb(bread.next().unwrap())?;
+    fs_operation::restore_the_crumb(bb.remove(0))?;
+    dbg!(std::fs::read_to_string("tests/testcases/clean_case_1.go").unwrap());
+    assert!(
+        same_file(
+            "tests/testcases/clean_case_1.go.restore_expect",
+            "tests/testcases/clean_case_1.go",
+        )
+        .unwrap()
+    );
+
+    remove_file("./tests/testcases/clean_case_1.go")
 }
 
 //#[test]

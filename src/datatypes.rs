@@ -69,6 +69,11 @@ pub struct Crumb {
     /// like in lisp `;;;:= here`, `;;;` should be header
     comment_symbol_header: String,
 
+    /// This store the endding syntex of multi-line comment
+    comment_symbol_endding: String,
+
+    pub(crate) has_tail: bool,
+
     /// ignore this crumb or not
     ignore: bool,
 
@@ -97,7 +102,13 @@ impl Crumb {
             comment_symbol_header,
             ignore,
             range_content: None,
+            ..Default::default()
         }
+    }
+
+    pub fn with_has_tail(mut self, has_tail: bool) -> Self {
+        self.has_tail = has_tail;
+        self
     }
 
     /// side effect: will change keyword to Some(_) if match successed
@@ -112,20 +123,26 @@ impl Crumb {
         }
     }
 
-    pub fn has_tail(&self) -> bool {
-        self.view_content.ends_with("...")
+    pub fn has_tail(&mut self) -> bool {
+        if self.view_content.ends_with("...") {
+            self.has_tail = true
+        }
+        self.has_tail
     }
 
     /// add tail crumbs in this one
-    pub fn add_tail(&mut self, tail: Self) {
+    pub fn add_tail(&mut self, mut tail: Self) {
         // update the first crumb's content
         self.view_content = self
             .view_content
             .trim_end()
             .trim_end_matches("...")
             .to_string();
-        self.view_content.push(' ');
+        if !self.view_content.is_empty() {
+            self.view_content.push(' ');
+        }
         self.view_content.push_str(&tail.content);
+        self.has_tail = tail.has_tail();
         self.tails.push(tail);
     }
 
@@ -134,6 +151,7 @@ impl Crumb {
         position: usize,
         content: String,
         comment_symbol_header: String,
+        comment_symbol_endding: String,
     ) -> Self {
         Self {
             line_num,
@@ -145,6 +163,8 @@ impl Crumb {
             comment_symbol_header,
             ignore: false,
             range_content: None,
+            comment_symbol_endding,
+            ..Default::default()
         }
     }
 
@@ -176,14 +196,18 @@ impl Crumb {
         a
     }
 
-    /// return this crumb line numbers, the position, the header and content of lines pairs
-    pub fn all_lines_num_postion_and_header_content(&self) -> Vec<(usize, usize, &str, &str)> {
+    /// return this crumb line numbers, the position, the header, the endding and content of lines pairs
+    pub fn all_lines_num_postion_and_header_content(
+        &self,
+    ) -> Vec<(usize, usize, &str, &str, &str)> {
         let mut a = vec![(
             self.line_num,
             self.position,
             self.comment_symbol_header.as_str(),
+            self.comment_symbol_endding.as_str(),
             self.content.as_str(),
         )];
+
         a.append(
             &mut self
                 .tails
@@ -192,7 +216,8 @@ impl Crumb {
                     (
                         t.line_num,
                         t.position,
-                        self.comment_symbol_header.as_str(),
+                        t.comment_symbol_header.as_str(),
+                        t.comment_symbol_endding.as_str(),
                         t.content.as_str(),
                     )
                 })
