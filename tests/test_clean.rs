@@ -139,12 +139,10 @@ fn test_delete_go_multiline_crumbs() -> Result<()> {
     let conf = config::Config::from(&args);
 
     let mut bread = fs_operation::handle_files(conf);
-    let mut bb = bread.collect::<Vec<_>>();
-    dbg!(&bb);
 
-    //fs_operation::delete_the_crumbs(bread.next().unwrap())?;
-    fs_operation::delete_the_crumbs(bb.remove(0))?;
-    dbg!(std::fs::read_to_string("tests/testcases/clean_case_1.go").unwrap());
+    fs_operation::delete_the_crumbs(bread.next().unwrap())?;
+
+    //dbg!(std::fs::read_to_string("tests/testcases/clean_case_1.go").unwrap());
     assert!(
         same_file(
             "tests/testcases/clean_case_1.go.delete_expect",
@@ -168,12 +166,9 @@ fn test_restore_go_multiline_crumbs() -> Result<()> {
     let conf = config::Config::from(&args);
 
     let mut bread = fs_operation::handle_files(conf);
-    let mut bb = bread.collect::<Vec<_>>();
-    dbg!(&bb);
+    fs_operation::restore_the_crumb(bread.next().unwrap())?;
 
-    //fs_operation::restore_the_crumb(bread.next().unwrap())?;
-    fs_operation::restore_the_crumb(bb.remove(0))?;
-    dbg!(std::fs::read_to_string("tests/testcases/clean_case_1.go").unwrap());
+    //dbg!(std::fs::read_to_string("tests/testcases/clean_case_1.go").unwrap());
     assert!(
         same_file(
             "tests/testcases/clean_case_1.go.restore_expect",
