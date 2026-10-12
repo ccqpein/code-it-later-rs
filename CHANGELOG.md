@@ -1,3 +1,25 @@
++ v0.11.0
+  + Multi-line block comment support for crumbs (e.g. `/* ... */`, `""" ... """`, `{- ... -}`)
+  + Support deleting and restoring multi-line block crumbs
+
++ v0.10.2
+  + Add `-y/--yes` option to assume yes for `-D/--del` and `-R/--restore` interactive prompts
+  + Add Google Antigravity `SKILL.md` integration for AI coding agents
+
++ v0.10.1
+  + Support Haskell (`.hs`), Makefile, and Dockerfile comment syntax
+  + Support scanning extensionless files and fallback comment regex matching
+  + Write files atomically when deleting or restoring crumbs
+
++ v0.10.0
+  + Add `-r/--range` argument to output surrounding lines of context for crumbs
+  + Add `Range` output format
+  + Upgrade to Rust 2024 edition and Rust 1.85
+
++ v0.9.0
+  + Replace `lazy_static` with `std::sync::LazyLock`
+  + Minimum supported Rust version updated to 1.80
+
 + v0.8.2
   + add `asd`/`asdf` comment symbol
 
